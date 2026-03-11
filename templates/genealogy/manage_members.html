@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Quan ly SQL | Gia Pha{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="manage-header-card">
+            <div>
+                <p class="eyebrow">Quan ly du lieu</p>
+                <h1>Trang quan ly SQL rieng</h1>
+                <p class="lead">Chi tai khoan admin moi duoc them, sua va xoa thanh vien cung bai viet tren giao dien nay.</p>
+            </div>
+            <span class="pill pill-soft">Admin only</span>
+        </div>
+
+        <div class="manage-layout">
+            <div class="table-card">
+                <div class="panel-top">
+                    <h2>Danh sach thanh vien</h2>
+                    <span class="pill">{{ members|length }} ban ghi</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ho ten</th>
+                            <th>Doi</th>
+                            <th>Cha/Me</th>
+                            <th>Nam sinh</th>
+                            <th>Quan ly</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                            <tr>
+                                <td>{{ member.full_name }}</td>
+                                <td>{{ member.generation }}</td>
+                                <td>{{ member.parent.full_name|default:"-" }}</td>
+                                <td>{{ member.birth_year|default:"-" }}</td>
+                                <td class="action-cell">
+                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_member={{ member.id }}">Sua</a>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_member">
+                                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                                        <button class="button danger small" type="submit">Xoa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">Chua co du lieu thanh vien.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <aside class="form-card">
+                <div class="panel-top">
+                    <h2>{% if edit_member %}Sua thanh vien{% else %}Them thanh vien{% endif %}</h2>
+                    <span class="pill pill-soft">{% if edit_member %}Edit{% else %}Create{% endif %}</span>
+                </div>
+                <form method="post" class="member-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_member">
+                    {% if edit_member %}
+                        <input type="hidden" name="member_id" value="{{ edit_member.id }}">
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="form-actions">
+                        <button class="button primary" type="submit">
+                            {% if edit_member %}Cap nhat{% else %}Them moi{% endif %}
+                        </button>
+                        {% if edit_member %}
+                            <a class="button secondary" href="{% url 'manage_members' %}">Tao moi</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </aside>
+        </div>
+
+        <div class="manage-layout manage-layout--posts">
+            <div class="table-card">
+                <div class="panel-top">
+                    <h2>Danh sach bai viet</h2>
+                    <span class="pill">{{ articles|length }} bai viet</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tieu de</th>
+                            <th>Tac gia</th>
+                            <th>Hinh anh</th>
+                            <th>Quan ly</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                            <tr>
+                                <td>{{ article.title }}</td>
+                                <td>{{ article.author }}</td>
+                                <td>{% if article.display_image %}<a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem anh</a>{% else %}-{% endif %}</td>
+                                <td class="action-cell">
+                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_article={{ article.id }}">Sua</a>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_article">
+                                        <input type="hidden" name="article_id" value="{{ article.id }}">
+                                        <button class="button danger small" type="submit">Xoa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">Chua co bai viet nao.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <aside class="form-card">
+                <div class="panel-top">
+                    <h2>{% if edit_article %}Sua bai viet{% else %}Them bai viet{% endif %}</h2>
+                    <span class="pill pill-soft">{% if edit_article %}Edit{% else %}Create{% endif %}</span>
+                </div>
+                <form method="post" enctype="multipart/form-data" class="member-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_article">
+                    {% if edit_article %}
+                        <input type="hidden" name="article_id" value="{{ edit_article.id }}">
+                    {% endif %}
+
+                    {% for field in article_form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="form-actions">
+                        <button class="button primary" type="submit">
+                            {% if edit_article %}Cap nhat bai viet{% else %}Dang bai viet{% endif %}
+                        </button>
+                        {% if edit_article %}
+                            <a class="button secondary" href="{% url 'manage_members' %}">Tao bai moi</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Trang chủ | Gia Phả{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-grid">
+        <div>
+            <p class="eyebrow">Gia phả dòng họ</p>
+            <h1>Lưu giữ lịch sử gia đình theo cách trực quan và dễ quản lý.</h1>
+            <p class="lead">
+                Website này giúp giới thiệu dòng họ, hiển thị cây gia phả theo từng đời
+                và quản lý dữ liệu bằng Django Admin.
+            </p>
+            <div class="hero-actions">
+                <a class="button primary" href="{% url 'family_tree' %}">Xem cây gia phả</a>
+                <a class="button secondary" href="{% url 'about' %}">Xem giới thiệu</a>
+            </div>
+        </div>
+        <div class="stats-card">
+            <div>
+                <span class="stats-label">Số thành viên</span>
+                <strong>{{ member_count }}</strong>
+            </div>
+            <div>
+                <span class="stats-label">Số đời</span>
+                <strong>{{ generation_count }}</strong>
+            </div>
+            <div>
+                <span class="stats-label">Trang quản lý</span>
+                <strong>Django Admin</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Nổi bật</p>
+            <h2>Thành viên tiêu biểu</h2>
+        </div>
+        <div class="member-grid">
+            {% for member in featured_members %}
+                <article class="member-card">
+                    <p class="generation">Đời thứ {{ member.generation }}</p>
+                    <h3>{{ member.full_name }}</h3>
+                    <p>{{ member.lifespan }}</p>
+                    <p>{{ member.hometown|default:"Chưa cập nhật quê quán" }}</p>
+                </article>
+            {% empty %}
+                <article class="member-card empty-state">
+                    <h3>Chưa có dữ liệu hiển thị</h3>
+                    <p>Hãy vào trang admin để thêm thành viên gia phả đầu tiên.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

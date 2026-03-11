@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gia Pha{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="site-header">
+            <div class="container nav-shell">
+                <a class="brand" href="{% url 'about' %}">
+                    <span class="brand-mark">GP</span>
+                    <span class="brand-text">
+                        <strong>Gia Pha</strong>
+                        <small>Luu giu ket noi gia dinh</small>
+                    </span>
+                </a>
+                <nav class="main-nav">
+                    <a href="{% url 'about' %}">Gioi thieu</a>
+                    <a href="{% url 'family_tree' %}">Family tree</a>
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                        <a href="{% url 'manage_members' %}">Quan ly</a>
+                        <a href="{% url 'logout' %}">Dang xuat</a>
+                    {% else %}
+                        <a href="{% url 'login' %}">Admin login</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="site-main">
+            {% if messages %}
+                <section class="flash-stack container">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+            <div class="container footer-shell">
+                <div>
+                    <p class="footer-title">Gia Pha Website</p>
+                    <p class="footer-copy">Giao dien rieng cho gioi thieu, family tree va quan ly du lieu SQL.</p>
+                </div>
+                <p class="footer-note">Python Django</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{% static 'js/family_tree.js' %}"></script>
+</body>
+</html>

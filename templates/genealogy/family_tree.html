@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Family Tree | Gia Pha{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="tree-header-card">
+            <div>
+                <p class="eyebrow">Family tree</p>
+                <h1>Cay gia pha</h1>
+                <p class="lead">Chon mot thanh vien de xem thong tin nhanh trong popup.</p>
+            </div>
+            <div class="tree-tip">
+                <strong>{{ member_count }}</strong>
+                <span>thanh vien dang hien thi</span>
+            </div>
+        </div>
+
+        {% if tree %}
+            <div class="tree-board">
+                <div class="tree-guide">
+                    <span>Keo ngang de xem toan bo cay</span>
+                    <span>Bam vao tung o de mo thong tin</span>
+                </div>
+                <div class="tree-wrapper">
+                    <ul class="tree-list root-list">
+                        {% for node in tree %}
+                            {% include 'genealogy/partials/tree_node.html' with node=node %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% else %}
+            <div class="member-card empty-state">
+                <h2>Chua co du lieu gia pha</h2>
+                <p>Vui long vao trang quan ly de them thanh vien va xay dung cay gia pha.</p>
+                <a class="button primary" href="{% url 'manage_members' %}">Mo trang quan ly</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<div class="member-modal" id="member-modal" hidden>
+    <div class="member-modal__backdrop" data-close-modal></div>
+    <div class="member-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+        <button class="close-button" type="button" aria-label="Dong" data-close-modal>X</button>
+        <p class="eyebrow">Thong tin thanh vien</p>
+        <h2 id="member-modal-title"></h2>
+        <div class="modal-detail-list">
+            <p id="member-modal-generation"></p>
+            <p id="member-modal-years"></p>
+            <p id="member-modal-hometown"></p>
+            <p id="member-modal-spouse"></p>
+        </div>
+        <div class="modal-bio">
+            <p id="member-modal-bio"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

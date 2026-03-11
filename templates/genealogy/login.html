@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login | Gia Pha{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container login-wrap">
+        <div class="form-card login-card">
+            <p class="eyebrow">Admin login</p>
+            <h1>Dang nhap quan tri</h1>
+            <p class="lead">Chi tai khoan co quyen admin moi co the vao trang quan ly.</p>
+
+            <form method="post" class="member-form">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="field-error">{{ field.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                    <div class="field-error">{{ form.non_field_errors|join:", " }}</div>
+                {% endif %}
+                <button class="button primary" type="submit">Dang nhap</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

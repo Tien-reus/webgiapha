@@ -1,0 +1,31 @@
+<li class="tree-node">
+    <button
+        class="tree-person"
+        type="button"
+        data-member-name="{{ node.member.full_name }}"
+        data-member-generation="Doi thu {{ node.member.generation }}"
+        data-member-years="{{ node.member.lifespan }}"
+        data-member-hometown="{% if node.member.hometown %}Que quan: {{ node.member.hometown }}{% else %}Que quan: Chua cap nhat{% endif %}"
+        data-member-spouse="{% if node.member.spouse_name %}Vo/chong: {{ node.member.spouse_name }}{% else %}Vo/chong: Chua cap nhat{% endif %}"
+        data-member-bio="{% if node.member.biography %}{{ node.member.biography }}{% else %}Chua co mo ta chi tiet.{% endif %}"
+    >
+        <span class="tree-person__couple">
+            <span class="tree-person__name">{{ node.member.full_name }}</span>
+            {% if node.member.spouse_name %}
+                <span class="tree-person__partner">{{ node.member.spouse_name }}</span>
+            {% endif %}
+        </span>
+        <span class="tree-person__meta">Doi {{ node.member.generation }}</span>
+        {% if node.member.birth_year %}
+            <span class="tree-person__meta">{{ node.member.birth_year }}</span>
+        {% endif %}
+    </button>
+
+    {% if node.children %}
+        <ul class="tree-list">
+            {% for node in node.children %}
+                {% include 'genealogy/partials/tree_node.html' with node=node %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>

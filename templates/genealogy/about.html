@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Gioi thieu | Gia Pha{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container hero-layout">
+        <div class="hero-copy">
+            <p class="eyebrow">Thong tin dong ho</p>
+            <h1>Mot giao dien dep, ro rang de gioi thieu va luu tru gia pha.</h1>
+            <p class="lead">
+                Website nay duoc thiet ke de trinh bay lich su gia dinh, theo doi cac the he,
+                va quan ly du lieu tren mot giao dien rieng de su dung de hon.
+            </p>
+            <div class="hero-actions">
+                <a class="button primary" href="{% url 'family_tree' %}">Xem family tree</a>
+                <a class="button secondary" href="{% url 'manage_members' %}">Mo trang quan ly</a>
+            </div>
+        </div>
+
+        <aside class="hero-panel">
+            <p class="panel-label">Tong quan nhanh</p>
+            <div class="metric-list">
+                <article class="metric-card">
+                    <span>Tong thanh vien</span>
+                    <strong>{{ member_count }}</strong>
+                </article>
+                <article class="metric-card">
+                    <span>So doi</span>
+                    <strong>{{ generation_count }}</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Bai viet</span>
+                    <strong>{{ articles|length }}</strong>
+                </article>
+            </div>
+        </aside>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading split-heading">
+            <div>
+                <p class="eyebrow">Bai viet</p>
+                <h2>Tin tuc va ghi chep cua dong ho</h2>
+            </div>
+            <p class="section-note">Cac bai viet duoc admin dang tren trang chu voi tieu de, noi dung, tac gia va hinh anh.</p>
+        </div>
+
+        <div class="article-grid">
+            {% for article in articles %}
+                <article class="article-card">
+                    {% if article.display_image %}
+                        <img class="article-image" src="{{ article.display_image }}" alt="{{ article.title }}">
+                    {% endif %}
+                    <div class="article-body">
+                        <p class="feature-number">{{ article.author }}</p>
+                        <h3>{{ article.title }}</h3>
+                        <p>{{ article.content|truncatechars:180 }}</p>
+                    </div>
+                </article>
+            {% empty %}
+                <article class="member-card empty-state">
+                    <h3>Chua co bai viet</h3>
+                    <p>Admin co the dang bai viet moi tai trang Quan ly sau khi dang nhap.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading split-heading">
+            <div>
+                <p class="eyebrow">Chuc nang</p>
+                <h2>Bo cuc moi de nhin hon</h2>
+            </div>
+            <p class="section-note">Tap trung vao noi dung chinh, it mau hon va phan tach tung khu vuc ro rang.</p>
+        </div>
+
+        <div class="feature-grid">
+            <article class="feature-card feature-card--dark">
+                <p class="feature-number">01</p>
+                <h3>Trang gioi thieu</h3>
+                <p>Trinh bay thong tin dong ho, muc dich website va cac so lieu tong quan trong mot khoi hero ro rang.</p>
+            </article>
+            <article class="feature-card">
+                <p class="feature-number">02</p>
+                <h3>Trang family tree</h3>
+                <p>Moi thanh vien la mot node rieng. Bam vao se mo popup hien ten, doi thu, que quan va mo ta.</p>
+            </article>
+            <article class="feature-card">
+                <p class="feature-number">03</p>
+                <h3>Trang quan ly</h3>
+                <p>Danh sach du lieu va form them sua duoc dat cung mot man hinh, de thao tac hon admin mac dinh.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section section-soft">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Thanh vien noi bat</p>
+            <h2>Nhung nguoi duoc hien tren trang gioi thieu</h2>
+        </div>
+        <div class="member-grid">
+            {% for member in featured_members %}
+                <article class="member-card member-card--highlight">
+                    <p class="generation">Doi thu {{ member.generation }}</p>
+                    <h3>{{ member.full_name }}</h3>
+                    <p>{{ member.lifespan }}</p>
+                    <p>{{ member.hometown|default:"Chua cap nhat que quan" }}</p>
+                </article>
+            {% empty %}
+                <article class="member-card empty-state">
+                    <h3>Chua co du lieu noi bat</h3>
+                    <p>Ban co the vao trang Quan ly de them thanh vien va danh dau noi bat.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
