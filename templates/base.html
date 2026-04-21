@@ -5,14 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gia phả dòng họ{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260421d">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260421f">
 </head>
 <body>
     <div class="page-shell">
         <header class="site-header">
             <div class="container nav-shell">
                 <a class="brand" href="{% url 'about' %}" aria-label="Trang chủ gia phả">
-                    <span class="brand-mark">Nguyễn</span>
+                    <span class="brand-mark">
+                        <img src="{% static 'images/bg.jpg' %}" alt="Logo dòng họ">
+                    </span>
                     <span class="brand-text">
                         <strong>Gia phả dòng họ</strong>
                         <small>Lưu giữ cội nguồn, kết nối hậu duệ</small>
