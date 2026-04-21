@@ -50,9 +50,15 @@ def family_tree(request):
     for member in members:
         nodes_by_parent.setdefault(member.parent_id, []).append(member)
 
+    for children in nodes_by_parent.values():
+        # Stable family order: by birth year, then creation order (id).
+        children.sort(key=lambda m: (m.birth_year or 9999, m.id))
+
     for member in members:
         if member.parent_id is None:
             roots.append(build_tree(nodes_by_parent, member))
+
+    roots.sort(key=lambda node: (node['member'].birth_year or 9999, node['member'].id))
 
     context = {
         'tree': roots,
@@ -72,7 +78,7 @@ def branches_outline(request):
 
 def member_detail(request, pk):
     member = get_object_or_404(FamilyMember.objects.select_related('parent'), pk=pk)
-    children = list(member.children.order_by('birth_year', 'full_name').values_list('full_name', 'birth_year'))
+    children = list(member.children.order_by('birth_year', 'id').values_list('full_name', 'birth_year'))
 
     father_name = member.father_name or (member.parent.full_name if member.parent else '')
     payload = {

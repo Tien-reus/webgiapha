@@ -38,6 +38,14 @@ class FamilyMemberForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
 
+    def clean(self):
+        cleaned_data = super().clean()
+        parent = cleaned_data.get('parent')
+        if parent:
+            # Keep generation consistent in tree: child = parent + 1.
+            cleaned_data['generation'] = parent.generation + 1
+        return cleaned_data
+
 
 class ArticleForm(forms.ModelForm):
     class Meta:
