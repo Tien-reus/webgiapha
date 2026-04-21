@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản lý bài viết | Gia phả dòng họ{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container container-wide">
+        <div class="manage-header-card">
+            <div>
+                <p class="eyebrow">Quản trị bài viết</p>
+                <h1>Đăng bài thông tin mới</h1>
+                <p class="lead">Tài khoản admin có thể đăng, sửa, xóa bài viết và hình ảnh tại đây.</p>
+            </div>
+            <div class="hero-actions">
+                <a class="button secondary" href="{% url 'manage_members' %}">Quản lý thành viên</a>
+            </div>
+        </div>
+
+        <div class="manage-layout">
+            <div class="table-card">
+                <div class="panel-top">
+                    <h2>Danh sách bài viết</h2>
+                    <span class="pill">{{ articles|length }} bài viết</span>
+                </div>
+                <form method="get" class="search-inline">
+                    <input
+                        class="form-control search-input"
+                        type="text"
+                        name="article_q"
+                        value="{{ article_query }}"
+                        placeholder="Tìm theo tiêu đề, nội dung, tác giả..."
+                    >
+                    <button class="button secondary small" type="submit">Tìm</button>
+                    {% if article_query %}
+                        <a class="button secondary small" href="{% url 'manage_articles' %}">Xóa lọc</a>
+                    {% endif %}
+                </form>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Tác giả</th>
+                            <th>Hình ảnh</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                            <tr>
+                                <td>{{ article.title }}</td>
+                                <td>{{ article.author }}</td>
+                                <td>{% if article.display_image %}<a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem ảnh</a>{% else %}-{% endif %}</td>
+                                <td class="action-cell">
+                                    <a class="button secondary small" href="{% url 'article_detail' article.id %}" target="_blank" rel="noreferrer">Xem</a>
+                                    <a class="button secondary small" href="{% url 'manage_articles' %}?edit_article={{ article.id }}">Sửa</a>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_article">
+                                        <input type="hidden" name="article_id" value="{{ article.id }}">
+                                        <button class="button danger small" type="submit">Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">Chưa có bài viết nào.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <aside class="form-card">
+                <div class="panel-top">
+                    <h2>{% if edit_article %}Sửa bài viết{% else %}Đăng bài mới{% endif %}</h2>
+                    <span class="pill pill-soft">{% if edit_article %}Chế độ sửa{% else %}Tạo mới{% endif %}</span>
+                </div>
+                <form method="post" enctype="multipart/form-data" class="member-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_article">
+                    {% if edit_article %}
+                        <input type="hidden" name="article_id" value="{{ edit_article.id }}">
+                    {% endif %}
+
+                    {% for field in article_form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="form-actions">
+                        <button class="button primary" type="submit">
+                            {% if edit_article %}Cập nhật bài viết{% else %}Đăng bài viết{% endif %}
+                        </button>
+                        {% if edit_article %}
+                            <a class="button secondary" href="{% url 'manage_articles' %}">Tạo bài mới</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

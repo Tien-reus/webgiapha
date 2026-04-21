@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Cành Họ | Gia phả dòng họ{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="tree-header-card">
+            <div>
+                <p class="eyebrow">Cành họ</p>
+                <h2>Gia phả chi tiết theo từng cành</h2>
+                <p class="section-note">Dữ liệu được trình bày theo thụt lề: khác bậc sẽ thụt thêm một nấc.</p>
+            </div>
+        </div>
+
+        <article class="tree-board">
+            <pre class="genealogy-outline">{{ outline_text }}</pre>
+        </article>
+    </div>
+</section>
+{% endblock %}

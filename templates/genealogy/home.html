@@ -1,36 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Trang chủ | Gia Phả{% endblock %}
+{% block title %}Trang chủ | Gia phả dòng họ{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <div class="container hero-grid">
-        <div>
+<section class="hero-section">
+    <div class="container hero-layout">
+        <div class="hero-copy">
             <p class="eyebrow">Gia phả dòng họ</p>
-            <h1>Lưu giữ lịch sử gia đình theo cách trực quan và dễ quản lý.</h1>
+            <h1>Lưu giữ lịch sử gia đình bằng một giao diện rõ ràng, trang trọng và dễ quản lý.</h1>
             <p class="lead">
                 Website này giúp giới thiệu dòng họ, hiển thị cây gia phả theo từng đời
-                và quản lý dữ liệu bằng Django Admin.
+                và quản lý dữ liệu trên cùng một nền tảng Django.
             </p>
             <div class="hero-actions">
                 <a class="button primary" href="{% url 'family_tree' %}">Xem cây gia phả</a>
                 <a class="button secondary" href="{% url 'about' %}">Xem giới thiệu</a>
             </div>
         </div>
-        <div class="stats-card">
-            <div>
-                <span class="stats-label">Số thành viên</span>
-                <strong>{{ member_count }}</strong>
+        <aside class="hero-panel">
+            <div class="metric-list">
+                <article class="metric-card">
+                    <span>Số thành viên</span>
+                    <strong>{{ member_count }}</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Số đời</span>
+                    <strong>{{ generation_count }}</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Trang quản lý</span>
+                    <strong>Django</strong>
+                </article>
             </div>
-            <div>
-                <span class="stats-label">Số đời</span>
-                <strong>{{ generation_count }}</strong>
-            </div>
-            <div>
-                <span class="stats-label">Trang quản lý</span>
-                <strong>Django Admin</strong>
-            </div>
-        </div>
+        </aside>
     </div>
 </section>
 
@@ -51,7 +53,7 @@
             {% empty %}
                 <article class="member-card empty-state">
                     <h3>Chưa có dữ liệu hiển thị</h3>
-                    <p>Hãy vào trang admin để thêm thành viên gia phả đầu tiên.</p>
+                    <p>Hãy vào trang quản trị để thêm thành viên gia phả đầu tiên.</p>
                 </article>
             {% endfor %}
         </div>

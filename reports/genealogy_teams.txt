@@ -1,0 +1,17 @@
+T?NG H?P GIA PH?
+- T?ng th?nh vi?n: 3
+- T?ng s? ??i: 1
+
+1) Tr?ch xu?t d? li?u th?nh vi?n
+- Nguyễn Thị B | ??i 1 | Cha/m?: - | Ph?i ng?u: Nguyễn Văn A | N?m sinh-m?t: 1999-9999 | Qu? qu?n: Thái Bình
+- Nguyễn Văn A | ??i 1 | Cha/m?: - | Ph?i ng?u: Nguyễn Thị B | N?m sinh-m?t: 1999-9999 | Qu? qu?n: Thái Bình
+- nguyên van AB1 | ??i 1 | Cha/m?: Nguyễn Văn A | Ph?i ng?u: - | N?m sinh-m?t: 1999-9999 | Qu? qu?n: Thái Bình
+
+2) Nh?m theo t?ng ??i
+- ??i 1 (3 ng??i):
+  + Nguyễn Thị B
+  + Nguyễn Văn A
+  + nguyên van AB1
+
+3) Danh s?ch c?c ??i
+- ??i ??i 1 (3 ng??i): Nguyễn Thị B, Nguyễn Văn A, nguyên van AB1

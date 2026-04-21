@@ -8,16 +8,23 @@ if (modal) {
     const spouse = document.getElementById('member-modal-spouse');
     const bio = document.getElementById('member-modal-bio');
 
-    document.querySelectorAll('.tree-person').forEach((button) => {
-        button.addEventListener('click', () => {
-            title.textContent = button.dataset.memberName || '';
-            generation.textContent = button.dataset.memberGeneration || '';
-            years.textContent = button.dataset.memberYears || '';
-            hometown.textContent = button.dataset.memberHometown || '';
-            spouse.textContent = button.dataset.memberSpouse || '';
-            bio.textContent = button.dataset.memberBio || '';
-            modal.hidden = false;
-        });
+    const fillAndOpenModal = (source) => {
+        title.textContent = source.dataset.memberName || '';
+        generation.textContent = source.dataset.memberGeneration || '';
+        years.textContent = source.dataset.memberYears || '';
+        hometown.textContent = source.dataset.memberHometown || '';
+        spouse.textContent = source.dataset.memberSpouse || '';
+        bio.textContent = source.dataset.memberBio || '';
+        modal.hidden = false;
+    };
+
+    // Event delegation keeps click working even if layout/template changes.
+    document.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-member-name]');
+        if (!target) {
+            return;
+        }
+        fillAndOpenModal(target);
     });
 
     modal.querySelectorAll('[data-close-modal]').forEach((element) => {

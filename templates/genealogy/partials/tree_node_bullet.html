@@ -1,6 +1,6 @@
-<li class="tree-node">
+<li class="bullet-tree-item">
     <button
-        class="tree-person"
+        class="member-line-button"
         type="button"
         data-member-name="{{ node.member.full_name }}"
         data-member-generation="Đời thứ {{ node.member.generation }}"
@@ -9,22 +9,17 @@
         data-member-spouse="{% if node.member.spouse_name %}Phối ngẫu: {{ node.member.spouse_name }}{% else %}Phối ngẫu: Chưa cập nhật{% endif %}"
         data-member-bio="{% if node.member.biography %}{{ node.member.biography }}{% else %}Chưa có mô tả chi tiết.{% endif %}"
     >
-        <span class="tree-person__couple">
-            <span class="tree-person__name">{{ node.member.full_name }}</span>
-            {% if node.member.spouse_name %}
-                <span class="tree-person__partner">{{ node.member.spouse_name }}</span>
-            {% endif %}
-        </span>
-        <span class="tree-person__meta">Đời {{ node.member.generation }}</span>
-        {% if node.member.birth_year %}
-            <span class="tree-person__meta">{{ node.member.birth_year }}</span>
+        {{ node.member.full_name }}
+        <span class="member-line-meta">(Đời {{ node.member.generation }})</span>
+        {% if node.member.spouse_name %}
+            <span class="member-line-meta">- Phối ngẫu: {{ node.member.spouse_name }}</span>
         {% endif %}
     </button>
 
     {% if node.children %}
-        <ul class="tree-list">
+        <ul class="bullet-tree-list">
             {% for node in node.children %}
-                {% include 'genealogy/partials/tree_node.html' with node=node %}
+                {% include 'genealogy/partials/tree_node_bullet.html' with node=node %}
             {% endfor %}
         </ul>
     {% endif %}

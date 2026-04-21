@@ -1,33 +1,52 @@
 {% extends 'base.html' %}
 
-{% block title %}Quan ly SQL | Gia Pha{% endblock %}
+{% block title %}Quản trị dữ liệu | Gia phả dòng họ{% endblock %}
 
 {% block content %}
 <section class="section">
-    <div class="container">
+    <div class="container container-wide">
         <div class="manage-header-card">
             <div>
-                <p class="eyebrow">Quan ly du lieu</p>
-                <h1>Trang quan ly SQL rieng</h1>
-                <p class="lead">Chi tai khoan admin moi duoc them, sua va xoa thanh vien cung bai viet tren giao dien nay.</p>
+                <p class="eyebrow">Quản trị dữ liệu</p>
+                <h1>Trang quản trị gia phả và tư liệu</h1>
+                <p class="lead">Chỉ tài khoản quản trị mới được thêm, sửa và xóa thành viên hoặc bài viết trên giao diện này.</p>
             </div>
-            <span class="pill pill-soft">Admin only</span>
+            <div class="hero-actions">
+                <span class="pill pill-soft">Chỉ dành cho quản trị</span>
+                <a class="button secondary small" href="{% url 'manage_articles' %}">Mở trang đăng bài</a>
+            </div>
         </div>
 
         <div class="manage-layout">
             <div class="table-card">
                 <div class="panel-top">
-                    <h2>Danh sach thanh vien</h2>
-                    <span class="pill">{{ members|length }} ban ghi</span>
+                    <h2>Danh sách thành viên</h2>
+                    <span class="pill">{{ members|length }} bản ghi</span>
                 </div>
+                <form method="get" class="search-inline">
+                    {% if article_query %}
+                        <input type="hidden" name="article_q" value="{{ article_query }}">
+                    {% endif %}
+                    <input
+                        class="form-control search-input"
+                        type="text"
+                        name="member_q"
+                        value="{{ member_query }}"
+                        placeholder="Tìm theo tên, cha/mẹ, vợ/chồng, quê quán..."
+                    >
+                    <button class="button secondary small" type="submit">Tìm</button>
+                    {% if member_query %}
+                        <a class="button secondary small" href="{% url 'manage_members' %}{% if article_query %}?article_q={{ article_query|urlencode }}{% endif %}">Xóa lọc</a>
+                    {% endif %}
+                </form>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Ho ten</th>
-                            <th>Doi</th>
-                            <th>Cha/Me</th>
-                            <th>Nam sinh</th>
-                            <th>Quan ly</th>
+                            <th>Họ tên</th>
+                            <th>Đời</th>
+                            <th>Cha/mẹ</th>
+                            <th>Năm sinh</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,18 +57,18 @@
                                 <td>{{ member.parent.full_name|default:"-" }}</td>
                                 <td>{{ member.birth_year|default:"-" }}</td>
                                 <td class="action-cell">
-                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_member={{ member.id }}">Sua</a>
+                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_member={{ member.id }}">Sửa</a>
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_member">
                                         <input type="hidden" name="member_id" value="{{ member.id }}">
-                                        <button class="button danger small" type="submit">Xoa</button>
+                                        <button class="button danger small" type="submit">Xóa</button>
                                     </form>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="5">Chua co du lieu thanh vien.</td>
+                                <td colspan="5">Chưa có dữ liệu thành viên.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -58,8 +77,8 @@
 
             <aside class="form-card">
                 <div class="panel-top">
-                    <h2>{% if edit_member %}Sua thanh vien{% else %}Them thanh vien{% endif %}</h2>
-                    <span class="pill pill-soft">{% if edit_member %}Edit{% else %}Create{% endif %}</span>
+                    <h2>{% if edit_member %}Sửa thành viên{% else %}Thêm thành viên{% endif %}</h2>
+                    <span class="pill pill-soft">{% if edit_member %}Chế độ sửa{% else %}Tạo mới{% endif %}</span>
                 </div>
                 <form method="post" class="member-form">
                     {% csrf_token %}
@@ -80,10 +99,10 @@
 
                     <div class="form-actions">
                         <button class="button primary" type="submit">
-                            {% if edit_member %}Cap nhat{% else %}Them moi{% endif %}
+                            {% if edit_member %}Cập nhật{% else %}Thêm mới{% endif %}
                         </button>
                         {% if edit_member %}
-                            <a class="button secondary" href="{% url 'manage_members' %}">Tao moi</a>
+                            <a class="button secondary" href="{% url 'manage_members' %}">Tạo mới</a>
                         {% endif %}
                     </div>
                 </form>
@@ -93,16 +112,32 @@
         <div class="manage-layout manage-layout--posts">
             <div class="table-card">
                 <div class="panel-top">
-                    <h2>Danh sach bai viet</h2>
-                    <span class="pill">{{ articles|length }} bai viet</span>
+                    <h2>Danh sách bài viết</h2>
+                    <span class="pill">{{ articles|length }} bài viết</span>
                 </div>
+                <form method="get" class="search-inline">
+                    {% if member_query %}
+                        <input type="hidden" name="member_q" value="{{ member_query }}">
+                    {% endif %}
+                    <input
+                        class="form-control search-input"
+                        type="text"
+                        name="article_q"
+                        value="{{ article_query }}"
+                        placeholder="Tìm theo tiêu đề, nội dung, tác giả..."
+                    >
+                    <button class="button secondary small" type="submit">Tìm</button>
+                    {% if article_query %}
+                        <a class="button secondary small" href="{% url 'manage_members' %}{% if member_query %}?member_q={{ member_query|urlencode }}{% endif %}">Xóa lọc</a>
+                    {% endif %}
+                </form>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Tieu de</th>
-                            <th>Tac gia</th>
-                            <th>Hinh anh</th>
-                            <th>Quan ly</th>
+                            <th>Tiêu đề</th>
+                            <th>Tác giả</th>
+                            <th>Hình ảnh</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,20 +145,20 @@
                             <tr>
                                 <td>{{ article.title }}</td>
                                 <td>{{ article.author }}</td>
-                                <td>{% if article.display_image %}<a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem anh</a>{% else %}-{% endif %}</td>
+                                <td>{% if article.display_image %}<a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem ảnh</a>{% else %}-{% endif %}</td>
                                 <td class="action-cell">
-                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_article={{ article.id }}">Sua</a>
+                                    <a class="button secondary small" href="{% url 'manage_members' %}?edit_article={{ article.id }}">Sửa</a>
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete_article">
                                         <input type="hidden" name="article_id" value="{{ article.id }}">
-                                        <button class="button danger small" type="submit">Xoa</button>
+                                        <button class="button danger small" type="submit">Xóa</button>
                                     </form>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="4">Chua co bai viet nao.</td>
+                                <td colspan="4">Chưa có bài viết nào.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -132,8 +167,8 @@
 
             <aside class="form-card">
                 <div class="panel-top">
-                    <h2>{% if edit_article %}Sua bai viet{% else %}Them bai viet{% endif %}</h2>
-                    <span class="pill pill-soft">{% if edit_article %}Edit{% else %}Create{% endif %}</span>
+                    <h2>{% if edit_article %}Sửa bài viết{% else %}Thêm bài viết{% endif %}</h2>
+                    <span class="pill pill-soft">{% if edit_article %}Chế độ sửa{% else %}Tạo mới{% endif %}</span>
                 </div>
                 <form method="post" enctype="multipart/form-data" class="member-form">
                     {% csrf_token %}
@@ -154,10 +189,10 @@
 
                     <div class="form-actions">
                         <button class="button primary" type="submit">
-                            {% if edit_article %}Cap nhat bai viet{% else %}Dang bai viet{% endif %}
+                            {% if edit_article %}Cập nhật bài viết{% else %}Đăng bài viết{% endif %}
                         </button>
                         {% if edit_article %}
-                            <a class="button secondary" href="{% url 'manage_members' %}">Tao bai moi</a>
+                            <a class="button secondary" href="{% url 'manage_members' %}">Tạo bài mới</a>
                         {% endif %}
                     </div>
                 </form>

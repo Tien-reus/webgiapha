@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.title }} | Gia phả dòng họ{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <article class="table-card">
+            <p class="feature-number">{{ article.author }} · {{ article.created_at|date:"d/m/Y H:i" }}</p>
+            <h1>{{ article.title }}</h1>
+            {% if article.display_image %}
+                <img class="article-image" src="{{ article.display_image }}" alt="{{ article.title }}">
+            {% endif %}
+            <div class="lead article-content">
+                {{ article.content|linebreaks }}
+            </div>
+        </article>
+
+        <div class="manage-layout manage-layout--posts">
+            <section class="table-card">
+                <div class="panel-top">
+                    <h2>Bình luận</h2>
+                    <span class="pill">{{ comments|length }} bình luận</span>
+                </div>
+                {% for c in comments %}
+                    <article class="comment-card">
+                        <p class="comment-meta"><strong>{{ c.commenter_name }}</strong> · {{ c.created_at|date:"d/m/Y H:i" }}</p>
+                        <p>{{ c.content|linebreaksbr }}</p>
+                    </article>
+                {% empty %}
+                    <p>Chưa có bình luận nào.</p>
+                {% endfor %}
+            </section>
+
+            <aside class="form-card">
+                <div class="panel-top">
+                    <h2>Gửi bình luận</h2>
+                    <span class="pill pill-soft">Không cần đăng nhập</span>
+                </div>
+                <form method="post" class="member-form">
+                    {% csrf_token %}
+                    {% for field in comment_form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="form-actions">
+                        <button class="button primary" type="submit">Gửi bình luận</button>
+                    </div>
+                </form>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -4,28 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gia Pha{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <title>{% block title %}Gia phả dòng họ{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260421c">
 </head>
 <body>
     <div class="page-shell">
         <header class="site-header">
             <div class="container nav-shell">
-                <a class="brand" href="{% url 'about' %}">
-                    <span class="brand-mark">GP</span>
+                <a class="brand" href="{% url 'about' %}" aria-label="Trang chủ gia phả">
+                    <span class="brand-mark">Nguyễn</span>
                     <span class="brand-text">
-                        <strong>Gia Pha</strong>
-                        <small>Luu giu ket noi gia dinh</small>
+                        <strong>Gia phả dòng họ</strong>
+                        <small>Lưu giữ cội nguồn, kết nối hậu duệ</small>
                     </span>
                 </a>
                 <nav class="main-nav">
-                    <a href="{% url 'about' %}">Gioi thieu</a>
-                    <a href="{% url 'family_tree' %}">Family tree</a>
+                    <a href="{% url 'about' %}">Trang chủ</a>
+                    <a href="{% url 'family_tree' %}">Phả hệ</a>
+                    <a href="{% url 'branches_outline' %}">Cành họ</a>
                     {% if request.user.is_authenticated and request.user.is_staff %}
-                        <a href="{% url 'manage_members' %}">Quan ly</a>
-                        <a href="{% url 'logout' %}">Dang xuat</a>
+                        <a href="{% url 'manage_members' %}">Quản trị</a>
+                        <a href="{% url 'manage_articles' %}">Đăng bài</a>
+                        <a href="{% url 'logout' %}">Đăng xuất</a>
                     {% else %}
-                        <a href="{% url 'login' %}">Admin login</a>
+                        <a href="{% url 'login' %}">Đăng nhập</a>
                     {% endif %}
                 </nav>
             </div>
@@ -45,14 +47,14 @@
         <footer class="site-footer">
             <div class="container footer-shell">
                 <div>
-                    <p class="footer-title">Gia Pha Website</p>
-                    <p class="footer-copy">Giao dien rieng cho gioi thieu, family tree va quan ly du lieu SQL.</p>
+                    <p class="footer-title">Gia phả họ tộc</p>
+                    <p class="footer-copy">Không gian số để ghi chép phả hệ, tưởng niệm tổ tiên và truyền lại ký ức gia đình.</p>
                 </div>
-                <p class="footer-note">Python Django</p>
+                <p class="footer-note">Xây dựng bằng Django</p>
             </div>
         </footer>
     </div>
 
-    <script src="{% static 'js/family_tree.js' %}"></script>
+    <script src="{% static 'js/family_tree.js' %}?v=20260421"></script>
 </body>
 </html>

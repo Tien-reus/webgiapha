@@ -1,38 +1,42 @@
 {% extends 'base.html' %}
 
-{% block title %}Gioi thieu | Gia Pha{% endblock %}
+{% block title %}Gia phả dòng họ Nguyễn{% endblock %}
 
 {% block content %}
 <section class="hero-section">
     <div class="container hero-layout">
         <div class="hero-copy">
-            <p class="eyebrow">Thong tin dong ho</p>
-            <h1>Mot giao dien dep, ro rang de gioi thieu va luu tru gia pha.</h1>
+            <p class="eyebrow">Gia phả họ Nguyễn</p>
+            <h1>Trang gia phả mang dáng vẻ trang trọng, gần với một từ đường số của dòng họ.</h1>
             <p class="lead">
-                Website nay duoc thiet ke de trinh bay lich su gia dinh, theo doi cac the he,
-                va quan ly du lieu tren mot giao dien rieng de su dung de hon.
+                Giao diện tập trung vào ba việc chính: giới thiệu lịch sử họ tộc, trình bày cây phả hệ
+                theo từng đời, và lưu lại bài viết, tư liệu, hình ảnh của con cháu trong cùng một không gian.
             </p>
             <div class="hero-actions">
-                <a class="button primary" href="{% url 'family_tree' %}">Xem family tree</a>
-                <a class="button secondary" href="{% url 'manage_members' %}">Mo trang quan ly</a>
+                <a class="button primary" href="{% url 'family_tree' %}">Xem cây gia phả</a>
+                <a class="button secondary" href="{% url 'manage_members' %}">Vào trang quản trị</a>
             </div>
         </div>
 
         <aside class="hero-panel">
-            <p class="panel-label">Tong quan nhanh</p>
+            <p class="panel-label">Tổng quan dòng họ</p>
             <div class="metric-list">
                 <article class="metric-card">
-                    <span>Tong thanh vien</span>
+                    <span>Tổng thành viên</span>
                     <strong>{{ member_count }}</strong>
                 </article>
                 <article class="metric-card">
-                    <span>So doi</span>
+                    <span>Số đời</span>
                     <strong>{{ generation_count }}</strong>
                 </article>
                 <article class="metric-card">
-                    <span>Bai viet</span>
+                    <span>Tư liệu</span>
                     <strong>{{ articles|length }}</strong>
                 </article>
+            </div>
+            <div class="heritage-note">
+                <p class="heritage-note__title">Chủ đề giao diện</p>
+                <p>Giấy sắc phong, son đỏ, họa tiết khung gỗ và bố cục rõ lớp để tạo cảm giác trang nghiêm như một trang gia phả thật.</p>
             </div>
         </aside>
     </div>
@@ -42,15 +46,16 @@
     <div class="container">
         <div class="section-heading split-heading">
             <div>
-                <p class="eyebrow">Bai viet</p>
-                <h2>Tin tuc va ghi chep cua dong ho</h2>
+                <p class="eyebrow">Tư liệu dòng họ</p>
+                <h2>Tin tức, ký sự và ghi chép được lưu lại cho hậu thế</h2>
             </div>
-            <p class="section-note">Cac bai viet duoc admin dang tren trang chu voi tieu de, noi dung, tac gia va hinh anh.</p>
+            <p class="section-note">Mỗi bài viết có thể dùng để lưu gia phả chi, ảnh ngày giỗ tổ, lịch sử chi họ hoặc các mốc sự kiện quan trọng.</p>
         </div>
 
         <div class="article-grid">
             {% for article in articles %}
                 <article class="article-card">
+                    <a class="article-link-wrap" href="{% url 'article_detail' article.id %}">
                     {% if article.display_image %}
                         <img class="article-image" src="{{ article.display_image }}" alt="{{ article.title }}">
                     {% endif %}
@@ -59,11 +64,12 @@
                         <h3>{{ article.title }}</h3>
                         <p>{{ article.content|truncatechars:180 }}</p>
                     </div>
+                    </a>
                 </article>
             {% empty %}
                 <article class="member-card empty-state">
-                    <h3>Chua co bai viet</h3>
-                    <p>Admin co the dang bai viet moi tai trang Quan ly sau khi dang nhap.</p>
+                    <h3>Chưa có tư liệu nào</h3>
+                    <p>Bạn có thể đăng nhập quản trị để thêm bài viết, ảnh gia đình và các ghi chép về chi họ.</p>
                 </article>
             {% endfor %}
         </div>
@@ -74,27 +80,27 @@
     <div class="container">
         <div class="section-heading split-heading">
             <div>
-                <p class="eyebrow">Chuc nang</p>
-                <h2>Bo cuc moi de nhin hon</h2>
+                <p class="eyebrow">Điểm nhấn</p>
+                <h2>Bố cục giống một cổng thông tin gia phả hiện đại</h2>
             </div>
-            <p class="section-note">Tap trung vao noi dung chinh, it mau hon va phan tach tung khu vuc ro rang.</p>
+            <p class="section-note">Tách riêng phần giới thiệu, sơ đồ phả hệ và quản trị để người xem dễ tiếp cận, còn người quản lý dễ cập nhật.</p>
         </div>
 
         <div class="feature-grid">
             <article class="feature-card feature-card--dark">
                 <p class="feature-number">01</p>
-                <h3>Trang gioi thieu</h3>
-                <p>Trinh bay thong tin dong ho, muc dich website va cac so lieu tong quan trong mot khoi hero ro rang.</p>
+                <h3>Cổng vào trang trọng</h3>
+                <p>Hero lớn, màu son thếp vàng và câu chữ hướng về cội nguồn để tạo đúng tinh thần website gia phả.</p>
             </article>
             <article class="feature-card">
                 <p class="feature-number">02</p>
-                <h3>Trang family tree</h3>
-                <p>Moi thanh vien la mot node rieng. Bam vao se mo popup hien ten, doi thu, que quan va mo ta.</p>
+                <h3>Sơ đồ phả hệ rõ đời</h3>
+                <p>Mỗi thành viên là một thẻ riêng, có thể bấm để xem nhanh quê quán, phối ngẫu, năm sinh mất và tiểu sử.</p>
             </article>
             <article class="feature-card">
                 <p class="feature-number">03</p>
-                <h3>Trang quan ly</h3>
-                <p>Danh sach du lieu va form them sua duoc dat cung mot man hinh, de thao tac hon admin mac dinh.</p>
+                <h3>Quản trị gọn một màn</h3>
+                <p>Danh sách thành viên, bài viết và form cập nhật đặt cùng trang để nhập liệu nhanh hơn Django admin mặc định.</p>
             </article>
         </div>
     </div>
@@ -103,21 +109,21 @@
 <section class="section section-soft">
     <div class="container">
         <div class="section-heading">
-            <p class="eyebrow">Thanh vien noi bat</p>
-            <h2>Nhung nguoi duoc hien tren trang gioi thieu</h2>
+            <p class="eyebrow">Nhân vật tiêu biểu</p>
+            <h2>Những bậc tiền nhân và hậu duệ được giới thiệu nổi bật</h2>
         </div>
         <div class="member-grid">
             {% for member in featured_members %}
                 <article class="member-card member-card--highlight">
-                    <p class="generation">Doi thu {{ member.generation }}</p>
+                    <p class="generation">Đời thứ {{ member.generation }}</p>
                     <h3>{{ member.full_name }}</h3>
                     <p>{{ member.lifespan }}</p>
-                    <p>{{ member.hometown|default:"Chua cap nhat que quan" }}</p>
+                    <p>{{ member.hometown|default:"Chưa cập nhật quê quán" }}</p>
                 </article>
             {% empty %}
                 <article class="member-card empty-state">
-                    <h3>Chua co du lieu noi bat</h3>
-                    <p>Ban co the vao trang Quan ly de them thanh vien va danh dau noi bat.</p>
+                    <h3>Chưa có dữ liệu nổi bật</h3>
+                    <p>Hãy thêm thành viên tại trang quản trị và đánh dấu hiển thị nổi bật để làm giàu trang chủ.</p>
                 </article>
             {% endfor %}
         </div>

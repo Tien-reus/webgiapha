@@ -1,8 +1,7 @@
 from django import forms
-
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import Article, FamilyMember
+from .models import Article, ArticleComment, FamilyMember
 
 
 class FamilyMemberForm(forms.ModelForm):
@@ -47,5 +46,19 @@ class ArticleForm(forms.ModelForm):
 
 
 class AdminLoginForm(AuthenticationForm):
-    username = forms.CharField(label='Tai khoan', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(label='Mat khau', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    username = forms.CharField(label='Tài khoản', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(label='Mật khẩu', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+
+class ArticleCommentForm(forms.ModelForm):
+    class Meta:
+        model = ArticleComment
+        fields = ['commenter_name', 'content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Nhập nội dung bình luận...'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['commenter_name'].widget.attrs.setdefault('class', 'form-control')
+        self.fields['content'].widget.attrs.setdefault('class', 'form-control')

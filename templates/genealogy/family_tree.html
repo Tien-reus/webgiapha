@@ -1,41 +1,41 @@
 {% extends 'base.html' %}
 
-{% block title %}Family Tree | Gia Pha{% endblock %}
+{% block title %}Cây gia phả | Gia phả dòng họ{% endblock %}
 
 {% block content %}
 <section class="section">
     <div class="container">
         <div class="tree-header-card">
             <div>
-                <p class="eyebrow">Family tree</p>
-                <h1>Cay gia pha</h1>
-                <p class="lead">Chon mot thanh vien de xem thong tin nhanh trong popup.</p>
+                <p class="eyebrow">Phả hệ dòng họ</p>
+                <h1>Cây gia phả</h1>
+                <p class="lead">Chọn từng thành viên để xem nhanh đời thứ, quê quán, phối ngẫu và phần ghi chép liên quan.</p>
             </div>
             <div class="tree-tip">
                 <strong>{{ member_count }}</strong>
-                <span>thanh vien dang hien thi</span>
+                <span>thành viên đang hiển thị</span>
             </div>
         </div>
 
         {% if tree %}
             <div class="tree-board">
                 <div class="tree-guide">
-                    <span>Keo ngang de xem toan bo cay</span>
-                    <span>Bam vao tung o de mo thong tin</span>
+                    <span>Hiển thị dạng gạch đầu dòng, cuộn dọc từ trên xuống</span>
+                    <span>Bấm vào tên để mở thông tin chi tiết</span>
                 </div>
-                <div class="tree-wrapper">
-                    <ul class="tree-list root-list">
+                <div class="bullet-tree-wrapper">
+                    <ul class="bullet-tree-list">
                         {% for node in tree %}
-                            {% include 'genealogy/partials/tree_node.html' with node=node %}
+                            {% include 'genealogy/partials/tree_node_bullet.html' with node=node %}
                         {% endfor %}
                     </ul>
                 </div>
             </div>
         {% else %}
             <div class="member-card empty-state">
-                <h2>Chua co du lieu gia pha</h2>
-                <p>Vui long vao trang quan ly de them thanh vien va xay dung cay gia pha.</p>
-                <a class="button primary" href="{% url 'manage_members' %}">Mo trang quan ly</a>
+                <h2>Chưa có dữ liệu gia phả</h2>
+                <p>Vui lòng vào trang quản trị để thêm thành viên và xây dựng cây phả hệ đầu tiên.</p>
+                <a class="button primary" href="{% url 'manage_members' %}">Mở trang quản trị</a>
             </div>
         {% endif %}
     </div>
@@ -44,8 +44,8 @@
 <div class="member-modal" id="member-modal" hidden>
     <div class="member-modal__backdrop" data-close-modal></div>
     <div class="member-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
-        <button class="close-button" type="button" aria-label="Dong" data-close-modal>X</button>
-        <p class="eyebrow">Thong tin thanh vien</p>
+        <button class="close-button" type="button" aria-label="Đóng" data-close-modal>X</button>
+        <p class="eyebrow">Thông tin thành viên</p>
         <h2 id="member-modal-title"></h2>
         <div class="modal-detail-list">
             <p id="member-modal-generation"></p>

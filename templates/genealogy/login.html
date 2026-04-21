@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %}Admin Login | Gia Pha{% endblock %}
+{% block title %}Đăng nhập quản trị | Gia phả dòng họ{% endblock %}
 
 {% block content %}
 <section class="section">
     <div class="container login-wrap">
         <div class="form-card login-card">
-            <p class="eyebrow">Admin login</p>
-            <h1>Dang nhap quan tri</h1>
-            <p class="lead">Chi tai khoan co quyen admin moi co the vao trang quan ly.</p>
+            <p class="eyebrow">Đăng nhập quản trị</p>
+            <h1>Truy cập khu quản trị gia phả</h1>
+            <p class="lead">Chỉ tài khoản có quyền quản trị mới có thể vào khu vực cập nhật thành viên và tư liệu.</p>
 
             <form method="post" class="member-form">
                 {% csrf_token %}
@@ -24,7 +24,7 @@
                 {% if form.non_field_errors %}
                     <div class="field-error">{{ form.non_field_errors|join:", " }}</div>
                 {% endif %}
-                <button class="button primary" type="submit">Dang nhap</button>
+                <button class="button primary" type="submit">Đăng nhập</button>
             </form>
         </div>
     </div>
