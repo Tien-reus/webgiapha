@@ -462,6 +462,17 @@ h2 {
     background: #e9e4db;
 }
 
+.article-image--detail {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: initial;
+    margin: 0 auto;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+}
+
 .article-body {
     padding: 20px;
 }

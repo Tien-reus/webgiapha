@@ -9,7 +9,8 @@
             <p class="feature-number">{{ article.author }} · {{ article.created_at|date:"d/m/Y H:i" }}</p>
             <h1>{{ article.title }}</h1>
             {% if article.display_image %}
-                <img class="article-image" src="{{ article.display_image }}" alt="{{ article.title }}">
+                <img class="article-image article-image--detail" src="{{ article.display_image }}" alt="{{ article.title }}">
+                <p style="margin-top:10px;"><a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem ảnh gốc</a></p>
             {% endif %}
             <div class="lead article-content">
                 {{ article.content|linebreaks }}
