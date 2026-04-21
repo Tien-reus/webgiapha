@@ -45,12 +45,31 @@
         </main>
 
         <footer class="site-footer">
-            <div class="container footer-shell">
-                <div>
-                    <p class="footer-title">Gia phả họ tộc</p>
-                    <p class="footer-copy">Không gian số để ghi chép phả hệ, tưởng niệm tổ tiên và truyền lại ký ức gia đình.</p>
+            <div class="container footer-block">
+                <div class="footer-grid">
+                    <section>
+                        <p class="footer-title">Gia phả dòng họ</p>
+                        <p class="footer-copy">Lưu giữ cội nguồn, kết nối hậu duệ và gìn giữ ký ức gia đình qua từng thế hệ.</p>
+                    </section>
+                    <section>
+                        <p class="footer-heading">Liên kết nhanh</p>
+                        <nav class="footer-links">
+                            <a href="{% url 'about' %}">Trang chủ</a>
+                            <a href="{% url 'family_tree' %}">Phả hệ</a>
+                            <a href="{% url 'branches_outline' %}">Cành họ</a>
+                            <a href="{% url 'manage_members' %}">Quản trị</a>
+                        </nav>
+                    </section>
+                    <section>
+                        <p class="footer-heading">Liên hệ</p>
+                        <p class="footer-copy">Thôn Luật Ngoại I, Quang Lịch, Kiến Xương, Hưng Yên (Thái Bình cũ)</p>
+                        <p class="footer-copy">Email: tientb2802@gmail.com</p>
+                    </section>
                 </div>
-                <p class="footer-note">Xây dựng bằng Django</p>
+                <div class="footer-bottom">
+                    <p class="footer-note">© {% now "Y" %} Gia phả dòng họ Nguyễn Bỉnh. All rights reserved.</p>
+                    <p class="footer-note">by tien_reus</p>
+                </div>
             </div>
         </footer>
     </div>
