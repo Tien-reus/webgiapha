@@ -13,7 +13,7 @@
                 <p style="margin-top:10px;"><a href="{{ article.display_image }}" target="_blank" rel="noreferrer">Xem ảnh gốc</a></p>
             {% endif %}
             <div class="lead article-content">
-                {{ article.content|linebreaks }}
+                <p class="article-content-text">{{ article.content }}</p>
             </div>
         </article>
 

@@ -52,7 +52,7 @@
             <p class="section-note"> Dùng để lưu gia phả chi, ảnh ngày giỗ tổ, lịch sử chi họ hoặc các mốc sự kiện quan trọng.</p>
         </div>
 
-        <div class="article-grid">
+        <div class="article-grid {% if articles|length == 1 %}article-grid--single{% endif %}">
             {% for article in articles %}
                 <article class="article-card">
                     <a class="article-link-wrap" href="{% url 'article_detail' article.id %}">
@@ -62,7 +62,7 @@
                     <div class="article-body">
                         <p class="feature-number">{{ article.author }}</p>
                         <h3>{{ article.title }}</h3>
-                        <p>{{ article.content|truncatechars:180 }}</p>
+                        <p class="article-excerpt">{{ article.content|linebreaksbr }}</p>
                     </div>
                     </a>
                 </article>

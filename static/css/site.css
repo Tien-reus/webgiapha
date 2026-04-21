@@ -412,6 +412,15 @@ h2 {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.article-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.article-grid--single .article-card {
+    max-width: 880px;
+    margin: 0 auto;
+}
+
 .feature-card,
 .member-card {
     padding: 24px;
@@ -479,6 +488,19 @@ h2 {
 
 .article-content {
     margin-top: 18px;
+}
+
+.article-content-text {
+    margin: 0;
+    white-space: pre-line;
+}
+
+.article-excerpt {
+    white-space: pre-line;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .comment-card {
