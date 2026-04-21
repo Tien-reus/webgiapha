@@ -3,6 +3,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
+from django.http import JsonResponse
 from pathlib import Path
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -67,6 +68,30 @@ def branches_outline(request):
         'outline_text': outline_text,
     }
     return render(request, 'genealogy/branches_outline.html', context)
+
+
+def member_detail(request, pk):
+    member = get_object_or_404(FamilyMember.objects.select_related('parent'), pk=pk)
+    children = list(member.children.order_by('birth_year', 'full_name').values_list('full_name', 'birth_year'))
+
+    father_name = member.father_name or (member.parent.full_name if member.parent else '')
+    payload = {
+        'id': member.id,
+        'full_name': member.full_name,
+        'birth_year': member.birth_year,
+        'death_year': member.death_year,
+        'hometown': member.hometown,
+        'father_name': father_name,
+        'mother_name': member.mother_name,
+        'spouse_name': member.spouse_name,
+        'occupation': member.occupation,
+        'achievements': member.achievements,
+        'education': member.education,
+        'notes': member.notes or member.biography,
+        'generation': member.generation,
+        'children': [{'full_name': n, 'birth_year': y} for n, y in children],
+    }
+    return JsonResponse(payload)
 
 
 def article_detail(request, pk):

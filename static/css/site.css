@@ -804,6 +804,12 @@ h2 {
     background: linear-gradient(180deg, var(--paper-strong), var(--paper-soft));
 }
 
+#member-modal-children {
+    margin: 0;
+    padding-left: 22px;
+    line-height: 1.6;
+}
+
 .close-button {
     position: absolute;
     top: 14px;

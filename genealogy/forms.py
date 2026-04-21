@@ -10,17 +10,25 @@ class FamilyMemberForm(forms.ModelForm):
         fields = [
             'full_name',
             'parent',
+            'father_name',
+            'mother_name',
             'spouse_name',
             'gender',
             'generation',
             'birth_year',
             'death_year',
             'hometown',
+            'occupation',
+            'achievements',
+            'education',
             'biography',
+            'notes',
             'is_highlighted',
         ]
         widgets = {
             'biography': forms.Textarea(attrs={'rows': 4}),
+            'achievements': forms.Textarea(attrs={'rows': 3}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):

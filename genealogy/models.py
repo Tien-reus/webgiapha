@@ -17,6 +17,8 @@ class FamilyMember(models.Model):
         blank=True,
     )
     spouse_name = models.CharField('Tên vợ/chồng', max_length=150, blank=True)
+    father_name = models.CharField('Tên cha', max_length=150, blank=True)
+    mother_name = models.CharField('Tên mẹ', max_length=150, blank=True)
     gender = models.CharField(
         'Giới tính',
         max_length=10,
@@ -27,7 +29,11 @@ class FamilyMember(models.Model):
     birth_year = models.PositiveIntegerField('Năm sinh', null=True, blank=True)
     death_year = models.PositiveIntegerField('Năm mất', null=True, blank=True)
     hometown = models.CharField('Quê quán', max_length=150, blank=True)
+    occupation = models.CharField('Nghề nghiệp', max_length=150, blank=True)
+    achievements = models.TextField('Công danh', blank=True)
+    education = models.CharField('Trình độ', max_length=150, blank=True)
     biography = models.TextField('Tiểu sử ngắn', blank=True)
+    notes = models.TextField('Ghi chú', blank=True)
     is_highlighted = models.BooleanField('Nổi bật ở trang giới thiệu', default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
