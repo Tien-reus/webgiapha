@@ -95,6 +95,7 @@ def _import_members_from_csv_text(text):
     updated = 0
     skipped = 0
     failed = 0
+    relinked = 0
 
     if '<html' in text[:500].lower():
         return created, updated, skipped, failed + 1
@@ -168,6 +169,8 @@ def _import_members_from_csv_text(text):
         if key[0]:
             existing_lookup[key] = member.id
 
+    pending_parent_updates = []
+
     for row in reader:
         try:
             normalized_row = {normalize_key(k): v for k, v in row.items()}
@@ -229,6 +232,8 @@ def _import_members_from_csv_text(text):
                     updated += update_count
                     parent_lookup[full_name.lower()] = row_id
                     existing_lookup[(full_name.lower(), payload['birth_year'])] = row_id
+                    if parent_name and parent_id is None:
+                        pending_parent_updates.append((row_id, parent_name))
                     continue
 
             existing_id = existing_lookup.get((full_name.lower(), payload['birth_year']))
@@ -236,15 +241,36 @@ def _import_members_from_csv_text(text):
                 FamilyMember.objects.filter(pk=existing_id).update(**payload)
                 updated += 1
                 parent_lookup[full_name.lower()] = existing_id
+                if parent_name and parent_id is None:
+                    pending_parent_updates.append((existing_id, parent_name))
             else:
                 created_obj = FamilyMember.objects.create(**payload)
                 created += 1
                 parent_lookup[full_name.lower()] = created_obj.id
                 existing_lookup[(full_name.lower(), payload['birth_year'])] = created_obj.id
+                if parent_name and parent_id is None:
+                    pending_parent_updates.append((created_obj.id, parent_name))
         except Exception:
             failed += 1
 
-    return created, updated, skipped, failed
+    # Pass 2: resolve unresolved parent links after all rows are created/updated.
+    if pending_parent_updates:
+        latest_parent_lookup = {}
+        for mid, name in FamilyMember.objects.values_list('id', 'full_name'):
+            if name:
+                latest_parent_lookup.setdefault(name.strip().lower(), mid)
+
+        for member_id, raw_parent in pending_parent_updates:
+            resolved_parent_id = None
+            for candidate in parent_candidates(raw_parent):
+                resolved_parent_id = latest_parent_lookup.get(candidate)
+                if resolved_parent_id:
+                    break
+            if resolved_parent_id and resolved_parent_id != member_id:
+                changed = FamilyMember.objects.filter(pk=member_id).exclude(parent_id=resolved_parent_id).update(parent_id=resolved_parent_id)
+                relinked += changed
+
+    return created, updated + relinked, skipped, failed
 
 
 def _normalize_csv_url(csv_url):
