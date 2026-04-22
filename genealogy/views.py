@@ -38,6 +38,39 @@ def build_tree(nodes_by_parent, member):
     }
 
 
+def is_heading_like_name(name):
+    value = (name or '').strip().lower()
+    if not value:
+        return True
+    heading_prefixes = (
+        'đời',
+        'doi',
+        'nhánh',
+        'nhanh',
+        'cành',
+        'canh',
+        'mạch',
+        'mach',
+    )
+    heading_exact = {
+        'con',
+        'con trai',
+        'con gái',
+        'vo',
+        'vợ',
+        'chồng',
+        'ghi chú',
+        'ghi chu',
+    }
+    if value in heading_exact:
+        return True
+    if any(value.startswith(prefix) for prefix in heading_prefixes):
+        return True
+    if value.endswith(':'):
+        return True
+    return False
+
+
 def export_members_csv_response():
     members = FamilyMember.objects.select_related('parent').order_by('generation', 'full_name')
     response = HttpResponse(content_type='text/csv; charset=utf-8')
@@ -183,6 +216,9 @@ def _import_members_from_csv_text(text):
 
             full_name = (get_val('full_name') or '').strip()
             if not full_name:
+                skipped += 1
+                continue
+            if is_heading_like_name(full_name):
                 skipped += 1
                 continue
 
@@ -339,7 +375,11 @@ def about(request):
 
 
 def family_tree(request):
-    members = list(FamilyMember.objects.select_related('parent'))
+    members = [
+        m
+        for m in FamilyMember.objects.select_related('parent')
+        if not is_heading_like_name(m.full_name)
+    ]
     nodes_by_parent = {}
     roots = []
 
