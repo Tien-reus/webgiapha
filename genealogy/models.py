@@ -75,7 +75,11 @@ class Article(models.Model):
     @property
     def display_image(self):
         if self.image:
-            return self.image.url
+            try:
+                if self.image.storage.exists(self.image.name):
+                    return self.image.url
+            except Exception:
+                pass
         return self.image_url
 
 
