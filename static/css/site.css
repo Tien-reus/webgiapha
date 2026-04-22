@@ -905,13 +905,22 @@ h2 {
 
 .bullet-tree-list {
     margin: 0;
-    padding-left: 24px;
-    list-style: disc;
+    padding-left: 0;
+    list-style: none;
 }
 
 .bullet-tree-item {
+    position: relative;
     margin: 6px 0;
-    margin-left: calc((var(--member-generation, 1) - 1) * 14px);
+    margin-left: calc((var(--member-generation, 1) - 1) * 16px + 20px);
+}
+
+.bullet-tree-item::before {
+    content: "•";
+    position: absolute;
+    left: -14px;
+    top: 0.1em;
+    color: var(--ink);
 }
 
 .member-line-button {
