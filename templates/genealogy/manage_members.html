@@ -17,6 +17,27 @@
             </div>
         </div>
 
+        <div class="table-card" style="margin-bottom: 1rem;">
+            <div class="panel-top">
+                <h2>Import / Export thanh vien (CSV)</h2>
+                <span class="pill">Dung file CSV tu Excel</span>
+            </div>
+            <div class="form-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export_members_csv">
+                    <button class="button secondary small" type="submit">Export CSV</button>
+                </form>
+                <form method="post" enctype="multipart/form-data" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="import_members_csv">
+                    <input class="form-control" type="file" name="members_csv" accept=".csv" required>
+                    <button class="button primary small" type="submit">Import CSV</button>
+                </form>
+            </div>
+            <p style="margin-top: 8px;">Neu dung Excel (.xlsx), hay Save As -> CSV UTF-8 truoc khi upload.</p>
+        </div>
+
         <div class="manage-layout">
             <div class="table-card">
                 <div class="panel-top">

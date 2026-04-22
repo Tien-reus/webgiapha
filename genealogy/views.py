@@ -1,9 +1,11 @@
+import csv
+import io
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from pathlib import Path
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -29,6 +31,127 @@ def build_tree(nodes_by_parent, member):
         'member': member,
         'children': [build_tree(nodes_by_parent, child) for child in nodes_by_parent.get(member.id, [])],
     }
+
+
+def export_members_csv_response():
+    members = FamilyMember.objects.select_related('parent').order_by('generation', 'full_name')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="family_members.csv"'
+    response.write('\ufeff')
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            'id',
+            'full_name',
+            'parent',
+            'father_name',
+            'mother_name',
+            'spouse_name',
+            'gender',
+            'generation',
+            'birth_year',
+            'death_year',
+            'hometown',
+            'occupation',
+            'achievements',
+            'education',
+            'biography',
+            'notes',
+            'is_highlighted',
+        ]
+    )
+    for member in members:
+        writer.writerow(
+            [
+                member.id,
+                member.full_name,
+                member.parent.full_name if member.parent else '',
+                member.father_name,
+                member.mother_name,
+                member.spouse_name,
+                member.gender,
+                member.generation,
+                member.birth_year or '',
+                member.death_year or '',
+                member.hometown,
+                member.occupation,
+                member.achievements,
+                member.education,
+                member.biography,
+                member.notes,
+                'True' if member.is_highlighted else 'False',
+            ]
+        )
+    return response
+
+
+def import_members_from_csv(uploaded_file):
+    text = uploaded_file.read().decode('utf-8-sig')
+    reader = csv.DictReader(io.StringIO(text))
+    created = 0
+    updated = 0
+    skipped = 0
+
+    for row in reader:
+        full_name = (row.get('full_name') or '').strip()
+        if not full_name:
+            skipped += 1
+            continue
+
+        parent_name = (row.get('parent') or '').strip()
+        parent = None
+        if parent_name:
+            parent = FamilyMember.objects.filter(full_name=parent_name).first()
+
+        def to_int(value, default=None):
+            value = (value or '').strip()
+            if not value:
+                return default
+            try:
+                return int(value)
+            except ValueError:
+                return default
+
+        payload = {
+            'full_name': full_name,
+            'parent': parent,
+            'father_name': (row.get('father_name') or '').strip(),
+            'mother_name': (row.get('mother_name') or '').strip(),
+            'spouse_name': (row.get('spouse_name') or '').strip(),
+            'gender': (row.get('gender') or 'other').strip() or 'other',
+            'generation': to_int(row.get('generation'), 1) or 1,
+            'birth_year': to_int(row.get('birth_year')),
+            'death_year': to_int(row.get('death_year')),
+            'hometown': (row.get('hometown') or '').strip(),
+            'occupation': (row.get('occupation') or '').strip(),
+            'achievements': (row.get('achievements') or '').strip(),
+            'education': (row.get('education') or '').strip(),
+            'biography': (row.get('biography') or '').strip(),
+            'notes': (row.get('notes') or '').strip(),
+            'is_highlighted': (row.get('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
+        }
+
+        row_id = to_int(row.get('id'))
+        if row_id:
+            obj = FamilyMember.objects.filter(pk=row_id).first()
+            if obj:
+                for key, value in payload.items():
+                    setattr(obj, key, value)
+                obj.save()
+                updated += 1
+                continue
+
+        existing = FamilyMember.objects.filter(full_name=full_name, birth_year=payload['birth_year']).first()
+        if existing:
+            for key, value in payload.items():
+                setattr(existing, key, value)
+            existing.save()
+            updated += 1
+        else:
+            FamilyMember.objects.create(**payload)
+            created += 1
+
+    return created, updated, skipped
 
 
 def about(request):
@@ -133,6 +256,26 @@ def manage_members(request):
 
     if request.method == 'POST':
         action = request.POST.get('action', 'save_member')
+
+        if action == 'export_members_csv':
+            return export_members_csv_response()
+
+        if action == 'import_members_csv':
+            uploaded = request.FILES.get('members_csv')
+            if not uploaded:
+                messages.error(request, 'Vui long chon file CSV truoc khi import.')
+                return redirect('manage_members')
+            try:
+                created, updated, skipped = import_members_from_csv(uploaded)
+                messages.success(
+                    request,
+                    f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}.',
+                )
+            except UnicodeDecodeError:
+                messages.error(request, 'File khong dung UTF-8. Hay luu Excel thanh CSV UTF-8 roi import lai.')
+            except Exception as exc:
+                messages.error(request, f'Import loi: {exc}')
+            return redirect('manage_members')
 
         if action == 'delete_member':
             member = get_object_or_404(FamilyMember, pk=request.POST.get('member_id'))
