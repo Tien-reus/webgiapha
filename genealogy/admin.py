@@ -2,6 +2,26 @@ from django.contrib import admin
 
 from .models import Article, ArticleComment, FamilyMember
 
+FAMILY_MEMBER_EXPORT_FIELDS = (
+    'id',
+    'full_name',
+    'parent',
+    'father_name',
+    'mother_name',
+    'spouse_name',
+    'gender',
+    'generation',
+    'birth_year',
+    'death_year',
+    'hometown',
+    'occupation',
+    'achievements',
+    'education',
+    'biography',
+    'notes',
+    'is_highlighted',
+)
+
 try:
     from import_export import fields as import_export_fields, resources
     from import_export.admin import ImportExportModelAdmin
@@ -21,30 +41,10 @@ if resources is not None:
             widget=ForeignKeyWidget(FamilyMember, 'full_name'),
         )
 
-        EXPORT_FIELDS = (
-            'id',
-            'full_name',
-            'parent',
-            'father_name',
-            'mother_name',
-            'spouse_name',
-            'gender',
-            'generation',
-            'birth_year',
-            'death_year',
-            'hometown',
-            'occupation',
-            'achievements',
-            'education',
-            'biography',
-            'notes',
-            'is_highlighted',
-        )
-
         class Meta:
             model = FamilyMember
-            fields = FamilyMemberResource.EXPORT_FIELDS
-            export_order = FamilyMemberResource.EXPORT_FIELDS
+            fields = FAMILY_MEMBER_EXPORT_FIELDS
+            export_order = FAMILY_MEMBER_EXPORT_FIELDS
             import_id_fields = ('id',)
             skip_unchanged = True
             report_skipped = True
