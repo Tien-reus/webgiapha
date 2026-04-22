@@ -1,6 +1,7 @@
 import csv
 import io
 import unicodedata
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from urllib.request import urlopen, Request
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -212,6 +213,30 @@ def _import_members_from_csv_text(text):
     return created, updated, skipped, failed
 
 
+def _normalize_csv_url(csv_url):
+    """
+    Accept normal Google Sheets links and convert them to direct CSV export URL.
+    """
+    parsed = urlparse(csv_url)
+    if 'docs.google.com' not in parsed.netloc or '/spreadsheets/' not in parsed.path:
+        return csv_url
+
+    path_parts = [p for p in parsed.path.split('/') if p]
+    # Expected: /spreadsheets/d/<sheet_id>/...
+    try:
+        d_index = path_parts.index('d')
+        sheet_id = path_parts[d_index + 1]
+    except Exception:
+        return csv_url
+
+    query = parse_qs(parsed.query)
+    gid = query.get('gid', ['0'])[0]
+
+    export_path = f'/spreadsheets/d/{sheet_id}/export'
+    export_query = urlencode({'format': 'csv', 'gid': gid})
+    return urlunparse((parsed.scheme or 'https', parsed.netloc, export_path, '', export_query, ''))
+
+
 def import_members_from_csv(uploaded_file):
     raw = uploaded_file.read()
     try:
@@ -373,7 +398,8 @@ def manage_members(request):
                 messages.error(request, 'Vui long nhap link CSV.')
                 return redirect('manage_members')
             try:
-                req = Request(csv_url, headers={'User-Agent': 'Mozilla/5.0'})
+                normalized_url = _normalize_csv_url(csv_url)
+                req = Request(normalized_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urlopen(req, timeout=20) as resp:
                     raw = resp.read(25 * 1024 * 1024 + 1)
                 if len(raw) > 25 * 1024 * 1024:
