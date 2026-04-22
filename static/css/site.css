@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap");
+
 :root {
     --bg: #efe1c2;
     --paper: rgba(255, 250, 239, 0.94);
@@ -28,7 +30,7 @@ html {
 body {
     margin: 0;
     color: var(--ink);
-    font-family: "Times New Roman", Georgia, serif;
+    font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
     background:
         linear-gradient(rgba(248, 243, 232, 0.88), rgba(165, 161, 154, 0.88)),
         url("/static/images/bg.jpg") center/cover no-repeat fixed;
@@ -887,7 +889,7 @@ h2 {
     border: 1px solid var(--line);
     background: rgba(255, 252, 244, 0.92);
     color: var(--ink);
-    font-family: "Times New Roman", Georgia, serif;
+    font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
     font-size: 1rem;
     line-height: 1.65;
     white-space: pre-wrap;
