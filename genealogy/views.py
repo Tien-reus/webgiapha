@@ -237,6 +237,27 @@ def _normalize_csv_url(csv_url):
     return urlunparse((parsed.scheme or 'https', parsed.netloc, export_path, '', export_query, ''))
 
 
+def _google_csv_candidates(csv_url):
+    normalized = _normalize_csv_url(csv_url)
+    candidates = [normalized]
+
+    parsed = urlparse(csv_url)
+    if 'docs.google.com' in parsed.netloc and '/spreadsheets/' in parsed.path:
+        path_parts = [p for p in parsed.path.split('/') if p]
+        try:
+            d_index = path_parts.index('d')
+            sheet_id = path_parts[d_index + 1]
+            query = parse_qs(parsed.query)
+            gid = query.get('gid', ['0'])[0]
+            # Alternate endpoint that often works when /export is blocked.
+            gviz = f'https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&gid={gid}'
+            if gviz not in candidates:
+                candidates.append(gviz)
+        except Exception:
+            pass
+    return candidates
+
+
 def import_members_from_csv(uploaded_file):
     raw = uploaded_file.read()
     try:
@@ -398,10 +419,18 @@ def manage_members(request):
                 messages.error(request, 'Vui long nhap link CSV.')
                 return redirect('manage_members')
             try:
-                normalized_url = _normalize_csv_url(csv_url)
-                req = Request(normalized_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urlopen(req, timeout=20) as resp:
-                    raw = resp.read(25 * 1024 * 1024 + 1)
+                raw = None
+                for candidate in _google_csv_candidates(csv_url):
+                    try:
+                        req = Request(candidate, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urlopen(req, timeout=20) as resp:
+                            raw = resp.read(25 * 1024 * 1024 + 1)
+                        break
+                    except Exception:
+                        raw = None
+                        continue
+                if raw is None:
+                    raise ValueError('no_candidate_url_worked')
                 if len(raw) > 25 * 1024 * 1024:
                     messages.error(request, 'File CSV qua lon (toi da 25MB).')
                     return redirect('manage_members')
