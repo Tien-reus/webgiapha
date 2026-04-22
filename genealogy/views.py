@@ -1,10 +1,11 @@
+from pathlib import Path
+
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
 from django.http import JsonResponse
-from pathlib import Path
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import AdminLoginForm, ArticleCommentForm, ArticleForm, FamilyMemberForm
@@ -31,6 +32,26 @@ def build_tree(nodes_by_parent, member):
     }
 
 
+def build_forest(members):
+    nodes_by_parent = {}
+    roots = []
+    members_by_id = {member.id: member for member in members}
+
+    for member in members:
+        parent_id = member.parent_id if member.parent_id in members_by_id else None
+        nodes_by_parent.setdefault(parent_id, []).append(member)
+
+    for children in nodes_by_parent.values():
+        children.sort(key=lambda m: (m.birth_year or 9999, m.id))
+
+    for member in members:
+        if member.parent_id is None or member.parent_id not in members_by_id:
+            roots.append(build_tree(nodes_by_parent, member))
+
+    roots.sort(key=lambda node: (node['member'].generation, node['member'].birth_year or 9999, node['member'].id))
+    return roots
+
+
 def about(request):
     members = FamilyMember.objects.all()
     context = {
@@ -43,35 +64,46 @@ def about(request):
 
 
 def family_tree(request):
-    members = list(FamilyMember.objects.select_related('parent'))
-    nodes_by_parent = {}
-    roots = []
+    selected_branch = request.GET.get('branch', '').strip()
+    members_qs = FamilyMember.objects.select_related('parent')
 
-    for member in members:
-        nodes_by_parent.setdefault(member.parent_id, []).append(member)
+    valid_branches = {choice[0] for choice in FamilyMember.Branch.choices}
+    if selected_branch in valid_branches:
+        members_qs = members_qs.filter(branch=selected_branch)
+    else:
+        selected_branch = ''
 
-    for children in nodes_by_parent.values():
-        # Stable family order: by birth year, then creation order (id).
-        children.sort(key=lambda m: (m.birth_year or 9999, m.id))
-
-    for member in members:
-        if member.parent_id is None:
-            roots.append(build_tree(nodes_by_parent, member))
-
-    roots.sort(key=lambda node: (node['member'].birth_year or 9999, node['member'].id))
+    members = list(members_qs)
+    roots = build_forest(members)
 
     context = {
         'tree': roots,
         'member_count': len(members),
+        'branch_choices': FamilyMember.Branch.choices,
+        'selected_branch': selected_branch,
     }
     return render(request, 'genealogy/family_tree.html', context)
 
 
 def branches_outline(request):
+    members = list(FamilyMember.objects.select_related('parent').order_by('generation', 'full_name'))
+    grouped = []
+
+    for branch_key, branch_label in FamilyMember.Branch.choices:
+        branch_members = [member for member in members if member.branch == branch_key]
+        grouped.append(
+            {
+                'key': branch_key,
+                'label': branch_label,
+                'count': len(branch_members),
+                'tree': build_forest(branch_members),
+            }
+        )
+
     outline_path = Path(__file__).resolve().parent / 'data' / 'canh_ho_outline.txt'
-    outline_text = outline_path.read_text(encoding='utf-8')
     context = {
-        'outline_text': outline_text,
+        'branches': grouped,
+        'outline_text': outline_path.read_text(encoding='utf-8'),
     }
     return render(request, 'genealogy/branches_outline.html', context)
 
@@ -84,6 +116,7 @@ def member_detail(request, pk):
     payload = {
         'id': member.id,
         'full_name': member.full_name,
+        'branch': member.get_branch_display(),
         'birth_year': member.birth_year,
         'death_year': member.death_year,
         'hometown': member.hometown,
@@ -109,7 +142,7 @@ def article_detail(request, pk):
             comment = comment_form.save(commit=False)
             comment.article = article
             comment.save()
-            messages.success(request, 'Đã gửi bình luận.')
+            messages.success(request, '?a g?i binh lu?n.')
             return redirect('article_detail', pk=article.pk)
     else:
         comment_form = ArticleCommentForm()
@@ -137,7 +170,7 @@ def manage_members(request):
         if action == 'delete_member':
             member = get_object_or_404(FamilyMember, pk=request.POST.get('member_id'))
             member.delete()
-            messages.success(request, 'Đã xóa thành viên khỏi danh sách.')
+            messages.success(request, '?a xoa thanh vien kh?i danh sach.')
             return redirect('manage_members')
 
         if action == 'save_member':
@@ -146,13 +179,13 @@ def manage_members(request):
             article_form = ArticleForm(instance=edit_article)
             if form.is_valid():
                 saved = form.save()
-                message = f'Đã cập nhật thông tin cho {saved.full_name}.' if instance else f'Đã thêm thành viên {saved.full_name}.'
+                message = f'?a c?p nh?t thong tin cho {saved.full_name}.' if instance else f'?a them thanh vien {saved.full_name}.'
                 messages.success(request, message)
                 return redirect('manage_members')
         elif action == 'delete_article':
             article = get_object_or_404(Article, pk=request.POST.get('article_id'))
             article.delete()
-            messages.success(request, 'Đã xóa bài viết.')
+            messages.success(request, '?a xoa bai vi?t.')
             return redirect('manage_members')
         elif action == 'save_article':
             instance = get_object_or_404(Article, pk=request.POST.get('article_id')) if request.POST.get('article_id') else None
@@ -160,14 +193,14 @@ def manage_members(request):
             form = FamilyMemberForm(instance=edit_member)
             if article_form.is_valid():
                 saved = article_form.save()
-                message = f'Đã cập nhật bài viết {saved.title}.' if instance else f'Đã thêm bài viết {saved.title}.'
+                message = f'?a c?p nh?t bai vi?t {saved.title}.' if instance else f'?a them bai vi?t {saved.title}.'
                 messages.success(request, message)
                 return redirect('manage_members')
     else:
         form = FamilyMemberForm(instance=edit_member)
         article_form = ArticleForm(instance=edit_article)
 
-    members = FamilyMember.objects.select_related('parent').order_by('generation', 'full_name')
+    members = FamilyMember.objects.select_related('parent').order_by('branch', 'generation', 'full_name')
     if member_query:
         members = members.filter(
             Q(full_name__icontains=member_query)
@@ -208,14 +241,14 @@ def manage_articles(request):
         if action == 'delete_article':
             article = get_object_or_404(Article, pk=request.POST.get('article_id'))
             article.delete()
-            messages.success(request, 'Đã xóa bài viết.')
+            messages.success(request, '?a xoa bai vi?t.')
             return redirect('manage_articles')
         if action == 'save_article':
             instance = get_object_or_404(Article, pk=request.POST.get('article_id')) if request.POST.get('article_id') else None
             article_form = ArticleForm(request.POST, request.FILES, instance=instance)
             if article_form.is_valid():
                 saved = article_form.save()
-                message = f'Đã cập nhật bài viết {saved.title}.' if instance else f'Đã đăng bài viết {saved.title}.'
+                message = f'?a c?p nh?t bai vi?t {saved.title}.' if instance else f'?a ??ng bai vi?t {saved.title}.'
                 messages.success(request, message)
                 return redirect('manage_articles')
     else:
@@ -241,5 +274,5 @@ def manage_articles(request):
 @user_passes_test(is_admin_user, login_url='/login/')
 def admin_logout(request):
     logout(request)
-    messages.success(request, 'Đã đăng xuất.')
+    messages.success(request, '?a ??ng xu?t.')
     return redirect('about')
