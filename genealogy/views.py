@@ -1,5 +1,6 @@
 import csv
 import io
+import unicodedata
 from urllib.request import urlopen, Request
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -93,19 +94,64 @@ def _import_members_from_csv_text(text):
     skipped = 0
     failed = 0
 
+    if '<html' in text[:500].lower():
+        return created, updated, skipped, failed + 1
+
+    def normalize_key(value):
+        value = (value or '').strip().lower()
+        value = ''.join(ch for ch in unicodedata.normalize('NFD', value) if unicodedata.category(ch) != 'Mn')
+        for ch in [' ', '-', '/', '\\', '.', ':', ';', ',', '(', ')']:
+            value = value.replace(ch, '_')
+        while '__' in value:
+            value = value.replace('__', '_')
+        return value.strip('_')
+
+    aliases = {
+        'id': {'id', 'ma', 'stt'},
+        'full_name': {'full_name', 'ho_va_ten', 'ho_ten', 'ten', 'hoten'},
+        'parent': {'parent', 'cha_me', 'cha', 'me', 'ten_cha_me'},
+        'father_name': {'father_name', 'ten_cha'},
+        'mother_name': {'mother_name', 'ten_me'},
+        'spouse_name': {'spouse_name', 'ten_vo_chong', 'vo_chong'},
+        'gender': {'gender', 'gioi_tinh'},
+        'generation': {'generation', 'doi', 'doi_thu'},
+        'birth_year': {'birth_year', 'nam_sinh'},
+        'death_year': {'death_year', 'nam_mat'},
+        'hometown': {'hometown', 'que_quan'},
+        'occupation': {'occupation', 'nghe_nghiep'},
+        'achievements': {'achievements', 'cong_danh'},
+        'education': {'education', 'trinh_do'},
+        'biography': {'biography', 'tieu_su', 'tieu_su_ngan'},
+        'notes': {'notes', 'ghi_chu'},
+        'is_highlighted': {'is_highlighted', 'noi_bat', 'noi_bat_o_trang_gioi_thieu'},
+    }
+
     csv.field_size_limit(10_000_000)
-    reader = csv.DictReader(io.StringIO(text))
+    sample = text[:4096]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=',;\t')
+        reader = csv.DictReader(io.StringIO(text), dialect=dialect)
+    except Exception:
+        reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames:
         return created, updated, skipped, failed + 1
 
     for row in reader:
         try:
-            full_name = (row.get('full_name') or '').strip()
+            normalized_row = {normalize_key(k): v for k, v in row.items()}
+
+            def get_val(field):
+                for alias in aliases[field]:
+                    if alias in normalized_row:
+                        return normalized_row.get(alias)
+                return ''
+
+            full_name = (get_val('full_name') or '').strip()
             if not full_name:
                 skipped += 1
                 continue
 
-            parent_name = (row.get('parent') or '').strip()
+            parent_name = (get_val('parent') or '').strip()
             parent = None
             if parent_name:
                 parent = FamilyMember.objects.filter(full_name=parent_name).first()
@@ -122,26 +168,26 @@ def _import_members_from_csv_text(text):
             payload = {
                 'full_name': full_name[:150],
                 'parent': parent,
-                'father_name': (row.get('father_name') or '').strip()[:150],
-                'mother_name': (row.get('mother_name') or '').strip()[:150],
-                'spouse_name': (row.get('spouse_name') or '').strip()[:150],
-                'gender': (row.get('gender') or 'other').strip() or 'other',
-                'generation': to_int(row.get('generation'), 1) or 1,
-                'birth_year': to_int(row.get('birth_year')),
-                'death_year': to_int(row.get('death_year')),
-                'hometown': (row.get('hometown') or '').strip()[:150],
-                'occupation': (row.get('occupation') or '').strip()[:150],
-                'achievements': (row.get('achievements') or '').strip(),
-                'education': (row.get('education') or '').strip()[:150],
-                'biography': (row.get('biography') or '').strip(),
-                'notes': (row.get('notes') or '').strip(),
-                'is_highlighted': (row.get('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
+                'father_name': (get_val('father_name') or '').strip()[:150],
+                'mother_name': (get_val('mother_name') or '').strip()[:150],
+                'spouse_name': (get_val('spouse_name') or '').strip()[:150],
+                'gender': (get_val('gender') or 'other').strip() or 'other',
+                'generation': to_int(get_val('generation'), 1) or 1,
+                'birth_year': to_int(get_val('birth_year')),
+                'death_year': to_int(get_val('death_year')),
+                'hometown': (get_val('hometown') or '').strip()[:150],
+                'occupation': (get_val('occupation') or '').strip()[:150],
+                'achievements': (get_val('achievements') or '').strip(),
+                'education': (get_val('education') or '').strip()[:150],
+                'biography': (get_val('biography') or '').strip(),
+                'notes': (get_val('notes') or '').strip(),
+                'is_highlighted': (get_val('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
             }
 
             if payload['gender'] not in {'male', 'female', 'other'}:
                 payload['gender'] = 'other'
 
-            row_id = to_int(row.get('id'))
+            row_id = to_int(get_val('id'))
             if row_id:
                 obj = FamilyMember.objects.filter(pk=row_id).first()
                 if obj:
@@ -288,10 +334,13 @@ def manage_members(request):
                     messages.error(request, 'Vui long chon file CSV truoc khi import.')
                     return redirect('manage_members')
                 created, updated, skipped, failed = import_members_from_csv(uploaded)
-                messages.success(
-                    request,
-                    f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
-                )
+                if created == 0 and updated == 0:
+                    messages.warning(request, f'Khong co ban ghi nao duoc them/cap nhat. Bo qua {skipped}, loi {failed}.')
+                else:
+                    messages.success(
+                        request,
+                        f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
+                    )
             except RequestDataTooBig:
                 messages.error(request, 'File qua lon. Hay tach CSV nho hon (duoi 25MB) roi import lai.')
             except UnicodeDecodeError:
@@ -307,10 +356,13 @@ def manage_members(request):
                 return redirect('manage_members')
             try:
                 created, updated, skipped, failed = _import_members_from_csv_text(text)
-                messages.success(
-                    request,
-                    f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
-                )
+                if created == 0 and updated == 0:
+                    messages.warning(request, f'Khong co ban ghi nao duoc them/cap nhat. Bo qua {skipped}, loi {failed}.')
+                else:
+                    messages.success(
+                        request,
+                        f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
+                    )
             except Exception:
                 messages.error(request, 'Import loi. Vui long kiem tra CSV va thu lai.')
             return redirect('manage_members')
@@ -332,10 +384,13 @@ def manage_members(request):
                 except UnicodeDecodeError:
                     text = raw.decode('cp1252')
                 created, updated, skipped, failed = _import_members_from_csv_text(text)
-                messages.success(
-                    request,
-                    f'Import tu link xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
-                )
+                if created == 0 and updated == 0:
+                    messages.warning(request, f'Import link xong nhung khong co ban ghi nao duoc them/cap nhat. Bo qua {skipped}, loi {failed}.')
+                else:
+                    messages.success(
+                        request,
+                        f'Import tu link xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
+                    )
             except Exception:
                 messages.error(request, 'Khong doc duoc link CSV. Kiem tra link public va thu lai.')
             return redirect('manage_members')
