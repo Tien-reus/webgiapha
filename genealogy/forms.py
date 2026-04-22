@@ -40,10 +40,6 @@ class FamilyMemberForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        parent = cleaned_data.get('parent')
-        if parent:
-            # Keep generation consistent in tree: child = parent + 1.
-            cleaned_data['generation'] = parent.generation + 1
         return cleaned_data
 
 
