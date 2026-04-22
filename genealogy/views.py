@@ -1,5 +1,6 @@
 import csv
 import io
+import re
 import unicodedata
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from urllib.request import urlopen, Request
@@ -142,6 +143,25 @@ def _import_members_from_csv_text(text):
         if name:
             parent_lookup.setdefault(name.strip().lower(), mid)
 
+    def parent_candidates(raw_parent):
+        value = (raw_parent or '').strip()
+        if not value:
+            return []
+        # Remove common suffixes like "(Đời 3)" or "(doi 3)".
+        cleaned = re.sub(r"\(\s*(đời|doi)\s*\d+\s*\)", "", value, flags=re.IGNORECASE).strip()
+        # Split by common separators when users put multiple names in one cell.
+        parts = re.split(r"\s*[;,/|]\s*|\s+-\s+", cleaned)
+        candidates = []
+        for part in parts:
+            p = part.strip()
+            if not p:
+                continue
+            candidates.append(p.lower())
+        # Keep original cleaned string first for exact whole-cell match.
+        if cleaned and cleaned.lower() not in candidates:
+            candidates.insert(0, cleaned.lower())
+        return candidates
+
     existing_lookup = {}
     for member in FamilyMember.objects.only('id', 'full_name', 'birth_year'):
         key = ((member.full_name or '').strip().lower(), member.birth_year)
@@ -166,7 +186,10 @@ def _import_members_from_csv_text(text):
             parent_name = (get_val('parent') or '').strip()
             parent_id = None
             if parent_name:
-                parent_id = parent_lookup.get(parent_name.lower())
+                for candidate in parent_candidates(parent_name):
+                    parent_id = parent_lookup.get(candidate)
+                    if parent_id:
+                        break
 
             def to_int(value, default=None):
                 value = (value or '').strip()
