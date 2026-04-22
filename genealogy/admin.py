@@ -2,13 +2,61 @@ from django.contrib import admin
 
 from .models import Article, ArticleComment, FamilyMember
 
+try:
+    from import_export import fields, resources
+    from import_export.admin import ImportExportModelAdmin
+    from import_export.widgets import ForeignKeyWidget
+except ModuleNotFoundError:
+    resources = None
+    fields = None
+    ForeignKeyWidget = None
+    ImportExportModelAdmin = admin.ModelAdmin
+
+
+if resources is not None:
+    class FamilyMemberResource(resources.ModelResource):
+        parent = fields.Field(
+            column_name='parent',
+            attribute='parent',
+            widget=ForeignKeyWidget(FamilyMember, 'full_name'),
+        )
+
+        class Meta:
+            model = FamilyMember
+            fields = (
+                'id',
+                'full_name',
+                'parent',
+                'father_name',
+                'mother_name',
+                'spouse_name',
+                'gender',
+                'generation',
+                'birth_year',
+                'death_year',
+                'hometown',
+                'occupation',
+                'achievements',
+                'education',
+                'biography',
+                'notes',
+                'is_highlighted',
+            )
+            export_order = fields
+            import_id_fields = ('id',)
+            skip_unchanged = True
+            report_skipped = True
+
 
 @admin.register(FamilyMember)
-class FamilyMemberAdmin(admin.ModelAdmin):
+class FamilyMemberAdmin(ImportExportModelAdmin):
     list_display = ('full_name', 'generation', 'parent', 'gender', 'birth_year', 'is_highlighted')
     list_filter = ('generation', 'gender', 'is_highlighted')
     search_fields = ('full_name', 'spouse_name', 'hometown', 'biography')
     autocomplete_fields = ('parent',)
+
+    if resources is not None:
+        resource_classes = [FamilyMemberResource]
 
 
 @admin.register(Article)
@@ -23,6 +71,6 @@ class ArticleCommentAdmin(admin.ModelAdmin):
     search_fields = ('commenter_name', 'content', 'article__title')
 
 
-admin.site.site_header = 'Quản trị gia phả'
-admin.site.site_title = 'Admin gia phả'
-admin.site.index_title = 'Quản lý dữ liệu gia phả'
+admin.site.site_header = 'Quan tri gia pha'
+admin.site.site_title = 'Admin gia pha'
+admin.site.index_title = 'Quan ly du lieu gia pha'

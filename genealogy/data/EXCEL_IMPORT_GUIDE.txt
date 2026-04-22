@@ -1,0 +1,29 @@
+Excel import for FamilyMember (Django Admin)
+
+1) Install dependencies on Render via requirements.txt
+2) Open /admin -> Family members
+3) Use Import button and upload .xlsx/.csv
+
+Recommended columns (same order as export):
+- id (optional; use when updating exact row)
+- full_name
+- parent (parent full_name)
+- father_name
+- mother_name
+- spouse_name
+- gender (male|female|other)
+- generation
+- birth_year
+- death_year
+- hometown
+- occupation
+- achievements
+- education
+- biography
+- notes
+- is_highlighted (True|False)
+
+Tip:
+- If you leave `id` empty, a new row will be created.
+- If you keep `id`, that row will be updated.
+- `parent` should be the exact full_name of an existing FamilyMember.

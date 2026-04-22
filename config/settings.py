@@ -46,6 +46,13 @@ INSTALLED_APPS = [
     'genealogy',
 ]
 
+try:
+    import import_export  # type: ignore  # noqa: F401
+except ModuleNotFoundError:
+    pass
+else:
+    INSTALLED_APPS.append('import_export')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -1,0 +1,3 @@
+id,full_name,parent,father_name,mother_name,spouse_name,gender,generation,birth_year,death_year,hometown,occupation,achievements,education,biography,notes,is_highlighted
+,Nguyen Van A,,,,,male,1,1950,,Thai Binh,Nong nghiep,,,Thong tin mo ta,,False
+,Nguyen Van B,Nguyen Van A,,,,male,2,1980,,Hung Yen,Ky su,,,Con cua Nguyen Van A,,False
