@@ -1,5 +1,6 @@
 import csv
 import io
+from urllib.request import urlopen, Request
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
@@ -312,6 +313,31 @@ def manage_members(request):
                 )
             except Exception:
                 messages.error(request, 'Import loi. Vui long kiem tra CSV va thu lai.')
+            return redirect('manage_members')
+
+        if action == 'import_members_csv_url':
+            csv_url = (request.POST.get('members_csv_url') or '').strip()
+            if not csv_url:
+                messages.error(request, 'Vui long nhap link CSV.')
+                return redirect('manage_members')
+            try:
+                req = Request(csv_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urlopen(req, timeout=20) as resp:
+                    raw = resp.read(25 * 1024 * 1024 + 1)
+                if len(raw) > 25 * 1024 * 1024:
+                    messages.error(request, 'File CSV qua lon (toi da 25MB).')
+                    return redirect('manage_members')
+                try:
+                    text = raw.decode('utf-8-sig')
+                except UnicodeDecodeError:
+                    text = raw.decode('cp1252')
+                created, updated, skipped, failed = _import_members_from_csv_text(text)
+                messages.success(
+                    request,
+                    f'Import tu link xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
+                )
+            except Exception:
+                messages.error(request, 'Khong doc duoc link CSV. Kiem tra link public va thu lai.')
             return redirect('manage_members')
 
         if action == 'delete_member':

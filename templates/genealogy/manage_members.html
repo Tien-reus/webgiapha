@@ -45,6 +45,15 @@
                     <button class="button secondary small" type="submit">Import tu noi dung CSV</button>
                 </div>
             </form>
+            <form method="post" style="margin-top: 10px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="import_members_csv_url">
+                <label for="members_csv_url">Hoac dan link CSV public (Google Sheet/Drive/GitHub raw):</label>
+                <div class="form-actions" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                    <input id="members_csv_url" name="members_csv_url" class="form-control" type="url" placeholder="https://...csv" required>
+                    <button class="button secondary small" type="submit">Import tu link CSV</button>
+                </div>
+            </form>
         </div>
 
         <div class="manage-layout">
