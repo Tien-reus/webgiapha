@@ -347,14 +347,21 @@ def family_tree(request):
         nodes_by_parent.setdefault(member.parent_id, []).append(member)
 
     for children in nodes_by_parent.values():
-        # Stable family order: by birth year, then creation order (id).
-        children.sort(key=lambda m: (m.birth_year or 9999, m.id))
+        # Stable family order: generation first, then birth year, then id.
+        children.sort(key=lambda m: (m.generation or 9999, m.birth_year or 9999, m.id))
 
     for member in members:
         if member.parent_id is None:
             roots.append(build_tree(nodes_by_parent, member))
 
-    roots.sort(key=lambda node: (node['member'].birth_year or 9999, node['member'].id))
+    # Ensure top-level roots are shown from oldest generation to youngest.
+    roots.sort(
+        key=lambda node: (
+            node['member'].generation or 9999,
+            node['member'].birth_year or 9999,
+            node['member'].id,
+        )
+    )
 
     context = {
         'tree': roots,
