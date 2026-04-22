@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
+from django.core.exceptions import RequestDataTooBig
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from pathlib import Path
@@ -290,6 +291,8 @@ def manage_members(request):
                     request,
                     f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
                 )
+            except RequestDataTooBig:
+                messages.error(request, 'File qua lon. Hay tach CSV nho hon (duoi 25MB) roi import lai.')
             except UnicodeDecodeError:
                 messages.error(request, 'File khong dung UTF-8. Hay luu Excel thanh CSV UTF-8 roi import lai.')
             except Exception:
