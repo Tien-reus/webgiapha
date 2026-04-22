@@ -8,7 +8,6 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import RequestDataTooBig
-from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from pathlib import Path
@@ -215,8 +214,7 @@ def _import_members_from_csv_text(text):
                 updated += 1
                 parent_lookup[full_name.lower()] = existing_id
             else:
-                with transaction.atomic():
-                    created_obj = FamilyMember.objects.create(**payload)
+                created_obj = FamilyMember.objects.create(**payload)
                 created += 1
                 parent_lookup[full_name.lower()] = created_obj.id
                 existing_lookup[(full_name.lower(), payload['birth_year'])] = created_obj.id
