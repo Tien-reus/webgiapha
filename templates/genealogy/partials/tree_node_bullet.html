@@ -17,11 +17,9 @@
         {% endif %}
     </button>
 
-    {% if node.children %}
-        <ul class="bullet-tree-list">
-            {% for node in node.children %}
-                {% include 'genealogy/partials/tree_node_bullet.html' with node=node %}
-            {% endfor %}
-        </ul>
-    {% endif %}
 </li>
+{% if node.children %}
+    {% for node in node.children %}
+        {% include 'genealogy/partials/tree_node_bullet.html' with node=node %}
+    {% endfor %}
+{% endif %}
