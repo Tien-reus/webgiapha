@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -80,7 +81,9 @@ class Article(models.Model):
                     return self.image.url
             except Exception:
                 pass
-        return self.image_url
+        if self.image_url:
+            return self.image_url
+        return f"{settings.STATIC_URL}images/bg.jpg"
 
 
 class ArticleComment(models.Model):
