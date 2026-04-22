@@ -173,9 +173,9 @@ def _import_members_from_csv_text(text):
         return created, updated, skipped, failed + 1
 
     parent_lookup = {}
-    for mid, name in FamilyMember.objects.values_list('id', 'full_name'):
+    for mid, name, generation in FamilyMember.objects.values_list('id', 'full_name', 'generation'):
         if name:
-            parent_lookup.setdefault(name.strip().lower(), mid)
+            parent_lookup.setdefault(name.strip().lower(), []).append((mid, generation))
 
     def parent_candidates(raw_parent):
         value = (raw_parent or '').strip()
@@ -202,6 +202,19 @@ def _import_members_from_csv_text(text):
         if key[0]:
             existing_lookup[key] = member.id
 
+    def resolve_parent_id(raw_parent, child_generation, lookup):
+        for candidate in parent_candidates(raw_parent):
+            matches = lookup.get(candidate, [])
+            if not matches:
+                continue
+            if child_generation and child_generation > 1:
+                expected_parent_generation = child_generation - 1
+                exact = [mid for mid, gen in matches if gen == expected_parent_generation]
+                if exact:
+                    return exact[0]
+            return matches[0][0]
+        return None
+
     pending_parent_updates = []
 
     for row in reader:
@@ -222,14 +235,6 @@ def _import_members_from_csv_text(text):
                 skipped += 1
                 continue
 
-            parent_name = (get_val('parent') or '').strip()
-            parent_id = None
-            if parent_name:
-                for candidate in parent_candidates(parent_name):
-                    parent_id = parent_lookup.get(candidate)
-                    if parent_id:
-                        break
-
             def to_int(value, default=None):
                 value = (value or '').strip()
                 if not value:
@@ -241,7 +246,7 @@ def _import_members_from_csv_text(text):
 
             payload = {
                 'full_name': full_name[:150],
-                'parent_id': parent_id,
+                'parent_id': None,
                 'father_name': (get_val('father_name') or '').strip()[:150],
                 'mother_name': (get_val('mother_name') or '').strip()[:150],
                 'spouse_name': (get_val('spouse_name') or '').strip()[:150],
@@ -257,6 +262,8 @@ def _import_members_from_csv_text(text):
                 'notes': (get_val('notes') or '').strip(),
                 'is_highlighted': (get_val('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
             }
+            parent_name = (get_val('parent') or '').strip()
+            payload['parent_id'] = resolve_parent_id(parent_name, payload['generation'], parent_lookup)
 
             if payload['gender'] not in {'male', 'female', 'other'}:
                 payload['gender'] = 'other'
@@ -266,42 +273,38 @@ def _import_members_from_csv_text(text):
                 update_count = FamilyMember.objects.filter(pk=row_id).update(**payload)
                 if update_count:
                     updated += update_count
-                    parent_lookup[full_name.lower()] = row_id
+                    parent_lookup.setdefault(full_name.lower(), []).append((row_id, payload['generation']))
                     existing_lookup[(full_name.lower(), payload['birth_year'])] = row_id
-                    if parent_name and parent_id is None:
-                        pending_parent_updates.append((row_id, parent_name))
+                    if parent_name and payload['parent_id'] is None:
+                        pending_parent_updates.append((row_id, parent_name, payload['generation']))
                     continue
 
             existing_id = existing_lookup.get((full_name.lower(), payload['birth_year']))
             if existing_id:
                 FamilyMember.objects.filter(pk=existing_id).update(**payload)
                 updated += 1
-                parent_lookup[full_name.lower()] = existing_id
-                if parent_name and parent_id is None:
-                    pending_parent_updates.append((existing_id, parent_name))
+                parent_lookup.setdefault(full_name.lower(), []).append((existing_id, payload['generation']))
+                if parent_name and payload['parent_id'] is None:
+                    pending_parent_updates.append((existing_id, parent_name, payload['generation']))
             else:
                 created_obj = FamilyMember.objects.create(**payload)
                 created += 1
-                parent_lookup[full_name.lower()] = created_obj.id
+                parent_lookup.setdefault(full_name.lower(), []).append((created_obj.id, payload['generation']))
                 existing_lookup[(full_name.lower(), payload['birth_year'])] = created_obj.id
-                if parent_name and parent_id is None:
-                    pending_parent_updates.append((created_obj.id, parent_name))
+                if parent_name and payload['parent_id'] is None:
+                    pending_parent_updates.append((created_obj.id, parent_name, payload['generation']))
         except Exception:
             failed += 1
 
     # Pass 2: resolve unresolved parent links after all rows are created/updated.
     if pending_parent_updates:
         latest_parent_lookup = {}
-        for mid, name in FamilyMember.objects.values_list('id', 'full_name'):
+        for mid, name, generation in FamilyMember.objects.values_list('id', 'full_name', 'generation'):
             if name:
-                latest_parent_lookup.setdefault(name.strip().lower(), mid)
+                latest_parent_lookup.setdefault(name.strip().lower(), []).append((mid, generation))
 
-        for member_id, raw_parent in pending_parent_updates:
-            resolved_parent_id = None
-            for candidate in parent_candidates(raw_parent):
-                resolved_parent_id = latest_parent_lookup.get(candidate)
-                if resolved_parent_id:
-                    break
+        for member_id, raw_parent, child_generation in pending_parent_updates:
+            resolved_parent_id = resolve_parent_id(raw_parent, child_generation, latest_parent_lookup)
             if resolved_parent_id and resolved_parent_id != member_id:
                 changed = FamilyMember.objects.filter(pk=member_id).exclude(parent_id=resolved_parent_id).update(parent_id=resolved_parent_id)
                 relinked += changed

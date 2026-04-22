@@ -4,6 +4,12 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import Article, ArticleComment, FamilyMember
 
 
+class ParentChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        birth = f", sinh {obj.birth_year}" if obj.birth_year else ""
+        return f"{obj.full_name} (ID {obj.id}, Đời {obj.generation}{birth})"
+
+
 class FamilyMemberForm(forms.ModelForm):
     class Meta:
         model = FamilyMember
@@ -33,8 +39,12 @@ class FamilyMemberForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['parent'].required = False
-        self.fields['parent'].queryset = FamilyMember.objects.order_by('generation', 'full_name')
+        parent_queryset = FamilyMember.objects.order_by('generation', 'full_name', 'id')
+        self.fields['parent'] = ParentChoiceField(
+            queryset=parent_queryset,
+            required=False,
+            label=self.fields['parent'].label,
+        )
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
 
