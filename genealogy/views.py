@@ -280,11 +280,11 @@ def manage_members(request):
             return export_members_csv_response()
 
         if action == 'import_members_csv':
-            uploaded = request.FILES.get('members_csv')
-            if not uploaded:
-                messages.error(request, 'Vui long chon file CSV truoc khi import.')
-                return redirect('manage_members')
             try:
+                uploaded = request.FILES.get('members_csv')
+                if not uploaded:
+                    messages.error(request, 'Vui long chon file CSV truoc khi import.')
+                    return redirect('manage_members')
                 created, updated, skipped, failed = import_members_from_csv(uploaded)
                 messages.success(
                     request,
@@ -292,8 +292,8 @@ def manage_members(request):
                 )
             except UnicodeDecodeError:
                 messages.error(request, 'File khong dung UTF-8. Hay luu Excel thanh CSV UTF-8 roi import lai.')
-            except Exception as exc:
-                messages.error(request, f'Import loi: {exc}')
+            except Exception:
+                messages.error(request, 'Import loi. Vui long kiem tra dinh dang CSV va thu lai.')
             return redirect('manage_members')
 
         if action == 'delete_member':
