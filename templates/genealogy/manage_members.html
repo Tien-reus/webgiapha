@@ -36,6 +36,15 @@
                 </form>
             </div>
             <p style="margin-top: 8px;">Neu dung Excel (.xlsx), hay Save As -> CSV UTF-8 truoc khi upload.</p>
+            <form method="post" style="margin-top: 10px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="import_members_csv_text">
+                <label for="members_csv_text">Neu upload van loi, dan truc tiep noi dung CSV vao day:</label>
+                <textarea id="members_csv_text" name="members_csv_text" class="form-control" rows="8" placeholder="id,full_name,parent,..."></textarea>
+                <div class="form-actions" style="margin-top: 8px;">
+                    <button class="button secondary small" type="submit">Import tu noi dung CSV</button>
+                </div>
+            </form>
         </div>
 
         <div class="manage-layout">
