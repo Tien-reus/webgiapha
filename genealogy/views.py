@@ -8,6 +8,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import RequestDataTooBig
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from pathlib import Path
@@ -137,6 +138,17 @@ def _import_members_from_csv_text(text):
     if not reader.fieldnames:
         return created, updated, skipped, failed + 1
 
+    parent_lookup = {}
+    for mid, name in FamilyMember.objects.values_list('id', 'full_name'):
+        if name:
+            parent_lookup.setdefault(name.strip().lower(), mid)
+
+    existing_lookup = {}
+    for member in FamilyMember.objects.only('id', 'full_name', 'birth_year'):
+        key = ((member.full_name or '').strip().lower(), member.birth_year)
+        if key[0]:
+            existing_lookup[key] = member.id
+
     for row in reader:
         try:
             normalized_row = {normalize_key(k): v for k, v in row.items()}
@@ -153,9 +165,9 @@ def _import_members_from_csv_text(text):
                 continue
 
             parent_name = (get_val('parent') or '').strip()
-            parent = None
+            parent_id = None
             if parent_name:
-                parent = FamilyMember.objects.filter(full_name=parent_name).first()
+                parent_id = parent_lookup.get(parent_name.lower())
 
             def to_int(value, default=None):
                 value = (value or '').strip()
@@ -168,7 +180,7 @@ def _import_members_from_csv_text(text):
 
             payload = {
                 'full_name': full_name[:150],
-                'parent': parent,
+                'parent_id': parent_id,
                 'father_name': (get_val('father_name') or '').strip()[:150],
                 'mother_name': (get_val('mother_name') or '').strip()[:150],
                 'spouse_name': (get_val('spouse_name') or '').strip()[:150],
@@ -190,23 +202,24 @@ def _import_members_from_csv_text(text):
 
             row_id = to_int(get_val('id'))
             if row_id:
-                obj = FamilyMember.objects.filter(pk=row_id).first()
-                if obj:
-                    for key, value in payload.items():
-                        setattr(obj, key, value)
-                    obj.save()
-                    updated += 1
+                update_count = FamilyMember.objects.filter(pk=row_id).update(**payload)
+                if update_count:
+                    updated += update_count
+                    parent_lookup[full_name.lower()] = row_id
+                    existing_lookup[(full_name.lower(), payload['birth_year'])] = row_id
                     continue
 
-            existing = FamilyMember.objects.filter(full_name=full_name, birth_year=payload['birth_year']).first()
-            if existing:
-                for key, value in payload.items():
-                    setattr(existing, key, value)
-                existing.save()
+            existing_id = existing_lookup.get((full_name.lower(), payload['birth_year']))
+            if existing_id:
+                FamilyMember.objects.filter(pk=existing_id).update(**payload)
                 updated += 1
+                parent_lookup[full_name.lower()] = existing_id
             else:
-                FamilyMember.objects.create(**payload)
+                with transaction.atomic():
+                    created_obj = FamilyMember.objects.create(**payload)
                 created += 1
+                parent_lookup[full_name.lower()] = created_obj.id
+                existing_lookup[(full_name.lower(), payload['birth_year'])] = created_obj.id
         except Exception:
             failed += 1
 
@@ -424,15 +437,15 @@ def manage_members(request):
                     try:
                         req = Request(candidate, headers={'User-Agent': 'Mozilla/5.0'})
                         with urlopen(req, timeout=20) as resp:
-                            raw = resp.read(25 * 1024 * 1024 + 1)
+                            raw = resp.read(5 * 1024 * 1024 + 1)
                         break
                     except Exception:
                         raw = None
                         continue
                 if raw is None:
                     raise ValueError('no_candidate_url_worked')
-                if len(raw) > 25 * 1024 * 1024:
-                    messages.error(request, 'File CSV qua lon (toi da 25MB).')
+                if len(raw) > 5 * 1024 * 1024:
+                    messages.error(request, 'File CSV qua lon (toi da 5MB). Hay chia nho sheet roi import tung phan.')
                     return redirect('manage_members')
                 try:
                     text = raw.decode('utf-8-sig')
