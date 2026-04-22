@@ -86,72 +86,84 @@ def export_members_csv_response():
 
 
 def import_members_from_csv(uploaded_file):
-    text = uploaded_file.read().decode('utf-8-sig')
+    raw = uploaded_file.read()
+    try:
+        text = raw.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        # Common fallback for CSV saved from legacy Excel encodings.
+        text = raw.decode('cp1252')
     reader = csv.DictReader(io.StringIO(text))
     created = 0
     updated = 0
     skipped = 0
+    failed = 0
 
     for row in reader:
-        full_name = (row.get('full_name') or '').strip()
-        if not full_name:
-            skipped += 1
-            continue
-
-        parent_name = (row.get('parent') or '').strip()
-        parent = None
-        if parent_name:
-            parent = FamilyMember.objects.filter(full_name=parent_name).first()
-
-        def to_int(value, default=None):
-            value = (value or '').strip()
-            if not value:
-                return default
-            try:
-                return int(value)
-            except ValueError:
-                return default
-
-        payload = {
-            'full_name': full_name,
-            'parent': parent,
-            'father_name': (row.get('father_name') or '').strip(),
-            'mother_name': (row.get('mother_name') or '').strip(),
-            'spouse_name': (row.get('spouse_name') or '').strip(),
-            'gender': (row.get('gender') or 'other').strip() or 'other',
-            'generation': to_int(row.get('generation'), 1) or 1,
-            'birth_year': to_int(row.get('birth_year')),
-            'death_year': to_int(row.get('death_year')),
-            'hometown': (row.get('hometown') or '').strip(),
-            'occupation': (row.get('occupation') or '').strip(),
-            'achievements': (row.get('achievements') or '').strip(),
-            'education': (row.get('education') or '').strip(),
-            'biography': (row.get('biography') or '').strip(),
-            'notes': (row.get('notes') or '').strip(),
-            'is_highlighted': (row.get('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
-        }
-
-        row_id = to_int(row.get('id'))
-        if row_id:
-            obj = FamilyMember.objects.filter(pk=row_id).first()
-            if obj:
-                for key, value in payload.items():
-                    setattr(obj, key, value)
-                obj.save()
-                updated += 1
+        try:
+            full_name = (row.get('full_name') or '').strip()
+            if not full_name:
+                skipped += 1
                 continue
 
-        existing = FamilyMember.objects.filter(full_name=full_name, birth_year=payload['birth_year']).first()
-        if existing:
-            for key, value in payload.items():
-                setattr(existing, key, value)
-            existing.save()
-            updated += 1
-        else:
-            FamilyMember.objects.create(**payload)
-            created += 1
+            parent_name = (row.get('parent') or '').strip()
+            parent = None
+            if parent_name:
+                parent = FamilyMember.objects.filter(full_name=parent_name).first()
 
-    return created, updated, skipped
+            def to_int(value, default=None):
+                value = (value or '').strip()
+                if not value:
+                    return default
+                try:
+                    return int(value)
+                except ValueError:
+                    return default
+
+            payload = {
+                'full_name': full_name[:150],
+                'parent': parent,
+                'father_name': (row.get('father_name') or '').strip()[:150],
+                'mother_name': (row.get('mother_name') or '').strip()[:150],
+                'spouse_name': (row.get('spouse_name') or '').strip()[:150],
+                'gender': (row.get('gender') or 'other').strip() or 'other',
+                'generation': to_int(row.get('generation'), 1) or 1,
+                'birth_year': to_int(row.get('birth_year')),
+                'death_year': to_int(row.get('death_year')),
+                'hometown': (row.get('hometown') or '').strip()[:150],
+                'occupation': (row.get('occupation') or '').strip()[:150],
+                'achievements': (row.get('achievements') or '').strip(),
+                'education': (row.get('education') or '').strip()[:150],
+                'biography': (row.get('biography') or '').strip(),
+                'notes': (row.get('notes') or '').strip(),
+                'is_highlighted': (row.get('is_highlighted') or '').strip().lower() in {'1', 'true', 'yes', 'on'},
+            }
+
+            if payload['gender'] not in {'male', 'female', 'other'}:
+                payload['gender'] = 'other'
+
+            row_id = to_int(row.get('id'))
+            if row_id:
+                obj = FamilyMember.objects.filter(pk=row_id).first()
+                if obj:
+                    for key, value in payload.items():
+                        setattr(obj, key, value)
+                    obj.save()
+                    updated += 1
+                    continue
+
+            existing = FamilyMember.objects.filter(full_name=full_name, birth_year=payload['birth_year']).first()
+            if existing:
+                for key, value in payload.items():
+                    setattr(existing, key, value)
+                existing.save()
+                updated += 1
+            else:
+                FamilyMember.objects.create(**payload)
+                created += 1
+        except Exception:
+            failed += 1
+
+    return created, updated, skipped, failed
 
 
 def about(request):
@@ -266,10 +278,10 @@ def manage_members(request):
                 messages.error(request, 'Vui long chon file CSV truoc khi import.')
                 return redirect('manage_members')
             try:
-                created, updated, skipped = import_members_from_csv(uploaded)
+                created, updated, skipped, failed = import_members_from_csv(uploaded)
                 messages.success(
                     request,
-                    f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}.',
+                    f'Import xong: tao moi {created}, cap nhat {updated}, bo qua {skipped}, loi {failed}.',
                 )
             except UnicodeDecodeError:
                 messages.error(request, 'File khong dung UTF-8. Hay luu Excel thanh CSV UTF-8 roi import lai.')
