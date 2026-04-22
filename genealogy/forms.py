@@ -9,7 +9,6 @@ class FamilyMemberForm(forms.ModelForm):
         model = FamilyMember
         fields = [
             'full_name',
-            'branch',
             'parent',
             'father_name',
             'mother_name',
@@ -34,9 +33,8 @@ class FamilyMemberForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['branch'].required = False
         self.fields['parent'].required = False
-        self.fields['parent'].queryset = FamilyMember.objects.order_by('branch', 'generation', 'full_name')
+        self.fields['parent'].queryset = FamilyMember.objects.order_by('generation', 'full_name')
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
 
@@ -44,26 +42,8 @@ class FamilyMemberForm(forms.ModelForm):
         cleaned_data = super().clean()
         parent = cleaned_data.get('parent')
         if parent:
-            # Keep branch + generation consistent with the selected parent.
-            cleaned_data['branch'] = parent.branch
+            # Keep generation consistent in tree: child = parent + 1.
             cleaned_data['generation'] = parent.generation + 1
-
-        full_name = (cleaned_data.get('full_name') or '').strip()
-        branch = cleaned_data.get('branch')
-        birth_year = cleaned_data.get('birth_year')
-        if full_name and branch:
-            duplicate_qs = FamilyMember.objects.filter(
-                full_name__iexact=full_name,
-                branch=branch,
-                birth_year=birth_year,
-            )
-            if self.instance and self.instance.pk:
-                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
-            if duplicate_qs.exists():
-                self.add_error(
-                    'full_name',
-                    'Thành viên này đã tồn tại trong cành họ (trùng họ tên và năm sinh).',
-                )
         return cleaned_data
 
 
@@ -82,8 +62,8 @@ class ArticleForm(forms.ModelForm):
 
 
 class AdminLoginForm(AuthenticationForm):
-    username = forms.CharField(label='Tai kho?n', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(label='M?t kh?u', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    username = forms.CharField(label='Tài khoản', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(label='Mật khẩu', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
 
 class ArticleCommentForm(forms.ModelForm):
@@ -91,7 +71,7 @@ class ArticleCommentForm(forms.ModelForm):
         model = ArticleComment
         fields = ['commenter_name', 'content']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Nh?p n?i dung binh lu?n...'}),
+            'content': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Nhập nội dung bình luận...'}),
         }
 
     def __init__(self, *args, **kwargs):

@@ -1,40 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}Cay gia ph? | Gia ph? dong h?{% endblock %}
+{% block title %}Cây gia phả | Gia phả dòng họ{% endblock %}
 
 {% block content %}
 <section class="section">
     <div class="container">
         <div class="tree-header-card">
             <div>
-                <p class="eyebrow">Ph? h? dong h?</p>
-                <h1>Cay gia ph?</h1>
-                <p class="lead">D? li?u cay ???c ??ng b? t? cung m?t ngu?n v?i trang Canh h?.</p>
+                <p class="eyebrow">Phả hệ dòng họ</p>
+                <h1>Cây gia phả</h1>
+                <p class="lead">Kính thưa bác/anh, theo phần gia phả hiện có, tôi xin hệ thống lại toàn bộ các thành viên đã ghi nhận trong tài liệu của dòng họ Nguyễn Bỉnh
+                     theo từng cành, từng đời, để tiện tra cứu lâu dài. Nguồn chính là bản gia phả bác Chiến đã tải lên:</p>
+                <p>
+                Trước hết, phần gốc tích chung của dòng họ ghi rằng Thủy tổ là Nguyễn Quý Công húy Bỉnh, nguyên phối Bùi Thị Thiểm, 
+                về lập ấp tại làng Luật Ngoại. Hai cụ sinh được 5 người con trai, là 5 cành của họ Nguyễn. Người em của Thủy tổ là Nguyễn Thùng, 
+                mất sớm, chưa có vợ, được tôn là Đại Mãnh Tướng Tổ. Bản gia phả được biên tập, bổ sung đến khoảng năm 2017.
+
+                </p>
             </div>
             <div class="tree-tip">
                 <strong>{{ member_count }}</strong>
-                <span>thanh vien ?ang hi?n th?</span>
+                <span>thành viên đang hiển thị</span>
             </div>
-        </div>
-
-        <div class="tree-board" style="margin-bottom: 1.25rem;">
-            <form method="get" class="search-inline" style="display:flex; gap:8px; align-items:center;">
-                <label for="branch" style="min-width:95px;">L?c canh h?</label>
-                <select class="form-control" id="branch" name="branch">
-                    <option value="">T?t c? canh</option>
-                    {% for value, label in branch_choices %}
-                        <option value="{{ value }}" {% if selected_branch == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-                <button class="button secondary small" type="submit">Xem</button>
-                {% if selected_branch %}
-                    <a class="button secondary small" href="{% url 'family_tree' %}">B? l?c</a>
-                {% endif %}
-            </form>
         </div>
 
         {% if tree %}
             <div class="tree-board">
+                <div class="tree-guide">
+                    <span>Hiển thị dạng gạch đầu dòng, cuộn dọc từ trên xuống</span>
+                    <span>Bấm vào tên để mở thông tin chi tiết</span>
+                </div>
                 <div class="bullet-tree-wrapper">
                     <ul class="bullet-tree-list">
                         {% for node in tree %}
@@ -45,9 +40,9 @@
             </div>
         {% else %}
             <div class="member-card empty-state">
-                <h2>Ch?a co d? li?u gia ph?</h2>
-                <p>Vui long vao trang qu?n tr? ?? them thanh vien ??u tien.</p>
-                <a class="button primary" href="{% url 'manage_members' %}">M? trang qu?n tr?</a>
+                <h2>Chưa có dữ liệu gia phả</h2>
+                <p>Vui lòng vào trang quản trị để thêm thành viên và xây dựng cây phả hệ đầu tiên.</p>
+                <a class="button primary" href="{% url 'manage_members' %}">Mở trang quản trị</a>
             </div>
         {% endif %}
     </div>
@@ -56,9 +51,9 @@
 <div class="member-modal" id="member-modal" hidden>
     <div class="member-modal__backdrop" data-close-modal></div>
     <div class="member-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
-        <button class="close-button" type="button" aria-label="?ong" data-close-modal>X</button>
-        <p class="eyebrow">Thong tin thanh vien</p>
-        <h2 id="member-modal-title">Ng??i:</h2>
+        <button class="close-button" type="button" aria-label="Đóng" data-close-modal>X</button>
+        <p class="eyebrow">Thông tin thành viên</p>
+        <h2 id="member-modal-title">Người: </h2>
         <div class="modal-detail-list">
             <p id="member-modal-birth-year"></p>
             <p id="member-modal-death-year"></p>
@@ -70,7 +65,7 @@
             <p id="member-modal-achievements"></p>
             <p id="member-modal-education"></p>
             <div>
-                <p id="member-modal-children-label">Con cai:</p>
+                <p id="member-modal-children-label">Con cái:</p>
                 <ul id="member-modal-children"></ul>
             </div>
         </div>

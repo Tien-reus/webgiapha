@@ -1,47 +1,27 @@
 {% extends 'base.html' %}
 
-{% block title %}Canh h? | Gia ph? dong h?{% endblock %}
+{% block title %}Cành Họ | Gia phả dòng họ{% endblock %}
 
 {% block content %}
 <section class="section">
     <div class="container">
         <div class="tree-header-card">
             <div>
-                <p class="eyebrow">Canh h?</p>
-                <h2>D? li?u theo t?ng canh</h2>
-                <p class="section-note">Khi b?n them/s?a thanh vien trong qu?n tr?, d? li?u ? trang nay va trang Ph? h? s? cung c?p nh?t.</p>
-            </div>
-            <div class="hero-actions">
-                <a class="button secondary small" href="{% url 'manage_members' %}">Them thanh vien</a>
+                <p class="eyebrow">Cành họ</p>
+                <h2>Gia phả chi tiết theo từng cành</h2>
+                <p class="section-note">
+                    Kính thưa bác/anh, theo phần gia phả hiện có, tôi xin hệ thống lại toàn bộ các thành viên đã ghi nhận trong tài liệu của dòng họ Nguyễn Bỉnh
+                     theo từng cành, từng đời, để tiện tra cứu lâu dài. Nguồn chính là bản gia phả bác Chiến đã tải lên:</p>
+                <p>
+                Trước hết, phần gốc tích chung của dòng họ ghi rằng Thủy tổ là Nguyễn Quý Công húy Bỉnh, nguyên phối Bùi Thị Thiểm, 
+                về lập ấp tại làng Luật Ngoại. Hai cụ sinh được 5 người con trai, là 5 cành của họ Nguyễn. Người em của Thủy tổ là Nguyễn Thùng, 
+                mất sớm, chưa có vợ, được tôn là Đại Mãnh Tướng Tổ. Bản gia phả được biên tập, bổ sung đến khoảng năm 2017.
+
+                </p>
             </div>
         </div>
 
-        {% for branch in branches %}
-            <article class="tree-board" style="margin-bottom: 1rem;">
-                <div class="panel-top" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-                    <h3 style="margin:0;">{{ branch.label }}</h3>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="pill">{{ branch.count }} thanh vien</span>
-                        <a class="button secondary small" href="{% url 'family_tree' %}?branch={{ branch.key }}">Xem ? Ph? h?</a>
-                    </div>
-                </div>
-
-                {% if branch.tree %}
-                    <div class="bullet-tree-wrapper" style="margin-top: 0.75rem;">
-                        <ul class="bullet-tree-list">
-                            {% for node in branch.tree %}
-                                {% include 'genealogy/partials/tree_node_bullet.html' with node=node %}
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% else %}
-                    <p style="margin-top: 0.75rem;">Ch?a co d? li?u cho canh nay.</p>
-                {% endif %}
-            </article>
-        {% endfor %}
-
         <article class="tree-board">
-            <h3>Tai li?u canh h? g?c</h3>
             <pre class="genealogy-outline">{{ outline_text }}</pre>
         </article>
     </div>
