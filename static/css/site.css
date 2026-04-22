@@ -911,6 +911,7 @@ h2 {
 
 .bullet-tree-item {
     margin: 6px 0;
+    margin-left: calc((var(--member-generation, 1) - 1) * 14px);
 }
 
 .member-line-button {
